@@ -1,7 +1,19 @@
+@import url(fonts/fonts.css);
+
+* {
+  overflow: hidden;
+  font-family: "Source Code Pro", monospace, Terminal !important;
+  font-size: 13px;
+}
+
+.xterm-viewport {
+  overflow: hidden !important;
+}
+
 body {
-    font-family: helvetica, sans-serif, arial;
-    font-size: 1em;
-    color: #111;
+  border: 1px solid green;
+  color: #111;
+  background-color: black;
 }
 
 h1 {
@@ -9,8 +21,6 @@ h1 {
 }
 
 #terminal-container {
-    width: 800px;
-    height: 450px;
     margin: 0 auto;
     padding: 2px;
 }

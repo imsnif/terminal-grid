@@ -1,0 +1,16 @@
+<!doctype html>
+<html>
+  <head>
+    <title>electron-terminal-window</title>
+    <link rel="stylesheet" href="./style/fonts/PowerlineFonts.css">
+    <link rel="stylesheet" href="../node_modules/xterm/src/xterm.css" />
+    <link rel="stylesheet" href="../node_modules/xterm/addons/fullscreen/fullscreen.css" />
+    <link rel="stylesheet" href="./style/main.css" />
+  </head>
+  <body>
+    <div id="terminal-container"></div>
+    <script defer>
+      require('./terminal.js')(window.document.getElementById('terminal-container'))
+    </script>
+  </body>
+</html>
