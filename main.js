@@ -4,41 +4,49 @@ const electron = require('electron')
 
 const app = electron.app
 const globalShortcut = electron.globalShortcut
+const shorty = require('./utils/shorty')
 const BrowserWindow = electron.BrowserWindow
 
 const Grid = require('grid')
-const grid = new Grid(1600, 900)
+const grids = {}
 
-let curIndex = 0
+let curScreen = 0
+
 let id = 1
 
-let minimized = false
-
-function switchWindow() {
-  if (curIndex === grid.panes.length - 1) {
-    curIndex = 1 // cycle back (first is always taskbar)
-  } else {
-    curIndex += 1
-  }
-  grid.panes[curIndex].wrapped.focus()
+function switchScreen() {
+  curScreen = grids[curScreen + 1] ? curScreen + 1 : 0
 }
 
-function toggleAllShow() {
-  if (minimized) {
-    grid.panes.filter(w => w.wrapped && w.wrapped.restore).forEach(w => w.wrapped.restore())
-  } else {
-    grid.panes.filter(w => w.wrapped && w.wrapped.minimize).forEach(w => w.wrapped.minimize())
+function switchWindow(curScreen) {
+  if (grids[curScreen].panes.length > 0) {
+    const paneIndex = grids[curScreen].curWindowIndex = grids[curScreen].curWindowIndex || 0
+    grids[curScreen].curWindowIndex = grids[curScreen].panes[paneIndex + 1]
+      ? paneIndex + 1
+      : 0
+  grids[curScreen].panes[grids[curScreen].curWindowIndex].wrapped.focus()
   }
-  minimized = !minimized
 }
 
-function createWindow () {
+function toggleAllShow(curScreen) {
+  const curGrid = grids[curScreen]
+  curGrid.minimized = curGrid.minimized || false
+  if (curGrid.minimized) {
+    grids[curGrid].panes.filter(w => w.wrapped && w.wrapped.restore).forEach(w => w.wrapped.restore())
+  } else {
+    grids[grid].panes.filter(w => w.wrapped && w.wrapped.minimize).forEach(w => w.wrapped.minimize())
+  }
+  curGrid.minimized = !curGrid.minimized
+}
+
+function createWindow (curScreen) {
   try {
-    let currentId = id += 1
-    grid.add(BrowserWindow, {id: currentId, width: 400, height: 300, frame: false, skipTaskbar: true})
-    curIndex = grid.panes.length - 1
+    grids[curScreen].curWindowIndex = grids[curScreen].curWindowIndex !== undefined
+      ? grids[curScreen].curWindowIndex + 1
+      : 0
+    grids[curScreen].add(BrowserWindow, {id: grids[curScreen].curWindowIndex, width: 400, height: 300, frame: false, skipTaskbar: true})
 
-    let createdWindow = grid.getPane(currentId)
+    const createdWindow = grids[curScreen].getPane(grids[curScreen].curWindowIndex)
     createdWindow.wrapped.loadURL(`file://${__dirname}/terminal/index.html`)
 
     // Open the DevTools.
@@ -49,13 +57,13 @@ function createWindow () {
   }
 }
 
-function changeCurWindow (params) {
-  const curWindow = grid.panes[curIndex]
+function changeCurWindow (curScreen, params) {
+  const pane = grids[curScreen].panes[grids[curScreen].curWindowIndex]
   if (params.x || params.y) {
     try {
-      grid.panes[curIndex].changeLocation(
-        params.x ? curWindow.x + parseInt(params.x) : curWindow.x,
-        params.y ? curWindow.y + parseInt(params.y) : curWindow.y
+      pane.changeLocation(
+        params.x ? pane.x + parseInt(params.x) : pane.x,
+        params.y ? pane.y + parseInt(params.y) : pane.y
       )
     } catch(e) {
       console.error(e)
@@ -63,9 +71,9 @@ function changeCurWindow (params) {
     }
   } else { // TODO: support both
     try {
-      grid.panes[curIndex].changeSize(
-        params.width ? curWindow.width + parseInt(params.width) : curWindow.width,
-        params.height ? curWindow.height + parseInt(params.height) : curWindow.height
+      pane.changeSize(
+        params.width ? pane.width + parseInt(params.width) : pane.width,
+        params.height ? pane.height + parseInt(params.height) : pane.height
       )
     } catch(e) {
       console.error(e)
@@ -74,21 +82,78 @@ function changeCurWindow (params) {
   }
 }
 
-app.on('ready', () => {
-  grid.add(null, {id, width: 1600, height: 40}) // taskbar
-  createWindow()
+function maxSize (params) {
+  const pane = grids[curScreen].panes[grids[curScreen].curWindowIndex || 0]
+  pane.maxSize(params)
+}
 
-  globalShortcut.register('CommandOrControl+W', () => {
-    createWindow()
+function maxLoc (params) {
+  const pane = grids[curScreen].panes[grids[curScreen].curWindowIndex || 0]
+  pane.maxLoc(params)
+}
+
+app.on('ready', () => {
+  const displays = electron.screen.getAllDisplays()
+  displays.forEach((display, i) => {
+    const bounds = display.bounds
+    const workArea = display.workArea
+    const gridOffset = {x: display.bounds.x, y: display.bounds.y}
+    const grid = new Grid(bounds.width, bounds.height, gridOffset)
+    if (workArea.y > bounds.y) {
+      grid.add(null, {
+        id: 'taskbarTop',
+        width: bounds.width,
+        height: workArea.y,
+        x: 0,
+        y: 0
+      })
+    } else if (workArea.x > bounds.x) {
+      grid.add(null, {
+        id: 'taskBarLeft',
+        width: workArea.x,
+        height: bounds.height,
+        x: 0,
+        y: 0
+      })
+    } else if (workArea.height < bounds.height) {
+      grid.add(null, {
+        id: 'taskBarBottom',
+        width: bounds.width,
+        height: bounds.height - workArea.height,
+        x: 0,
+        y: workArea.height
+      })
+    } else if (workArea.width < bounds.width) {
+      grid.add(null, {
+        id: 'taskBarRight',
+        width: bounds.width - workArea.width,
+        height: bounds.height,
+        x: workArea.width,
+        y: 0
+      })
+    }
+    grids[i] = grid
   })
-  globalShortcut.register('CommandOrControl+A', toggleAllShow)
-  globalShortcut.register('CommandOrControl+Q', switchWindow)
-  globalShortcut.register('CommandOrControl+H', changeCurWindow.bind(this, {x: '-10'}))
-  globalShortcut.register('CommandOrControl+J', changeCurWindow.bind(this, {y: '10'}))
-  globalShortcut.register('CommandOrControl+K', changeCurWindow.bind(this, {y: '-10'}))
-  globalShortcut.register('CommandOrControl+L', changeCurWindow.bind(this, {x: '10'}))
-  globalShortcut.register('Alt+H', changeCurWindow.bind(this, {width: '-10'}))
-  globalShortcut.register('Alt+J', changeCurWindow.bind(this, {height: '10'}))
-  globalShortcut.register('Alt+K', changeCurWindow.bind(this, {height: '-10'}))
-  globalShortcut.register('Alt+L', changeCurWindow.bind(this, {width: '10'}))
+  // createWindow()
+
+  shorty.register('F2', 'W', () => createWindow(curScreen))
+  shorty.register('F2', 'S', () => switchScreen(curScreen))
+  shorty.register('F2', 'A', () => toggleAllShow(curScreen))
+  shorty.register('F2', 'Q', () => switchWindow(curScreen))
+  shorty.register('F2', 'CommandOrControl+H', () => changeCurWindow(curScreen, {x: '-30'}))
+  shorty.register('F2', 'CommandOrControl+J', () => changeCurWindow(curScreen, {y: '30'}))
+  shorty.register('F2', 'CommandOrControl+K', () => changeCurWindow(curScreen, {y: '-30'}))
+  shorty.register('F2', 'CommandOrControl+L', () => changeCurWindow(curScreen, {x: '30'}))
+  shorty.register('F2', 'Alt+H', () => changeCurWindow(curScreen, {width: '-30'}))
+  shorty.register('F2', 'Alt+J', () => changeCurWindow(curScreen, {height: '30'}))
+  shorty.register('F2', 'Alt+K', () => changeCurWindow(curScreen, {height: '-30'}))
+  shorty.register('F2', 'Alt+L', () => changeCurWindow(curScreen, {width: '30'}))
+  shorty.register('F2', 'Shift+J', () => maxSize({down: true}))
+  shorty.register('F2', 'Shift+K', () => maxSize({up: true}))
+  shorty.register('F2', 'Shift+L', () => maxSize({right: true}))
+  shorty.register('F2', 'Shift+H', () => maxSize({left: true}))
+  shorty.register('F2', 'H', () => maxLoc({left: true}))
+  shorty.register('F2', 'J', () => maxLoc({down: true}))
+  shorty.register('F2', 'K', () => maxLoc({up: true}))
+  shorty.register('F2', 'L', () => maxLoc({right: true}))
 })
