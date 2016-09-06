@@ -117,10 +117,7 @@ function createWindow (curScreen) {
 }
 
 function changeCurWindow (curScreen, params) {
-  const currentWinIndex = winTracker.currentWindowIndex
-  const currentPanes = grids[curScreen].panes
-  const paneId = currentPanes[currentWindowIndex]
-  const pane = grids[curScreen].getPane(paneId)
+  const pane = grids[curScreen].getPane(tracker.currentWindowIndex)
   if (params.x || params.y) {
     try {
       pane.changeLocation(
