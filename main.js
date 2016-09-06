@@ -145,18 +145,12 @@ function changeCurWindow (curScreen, params) {
 }
 
 function maxSize (curScreen, params) {
-  const currentWinIndex = tracker.currentWindowIndex
-  const currentPanes = grids[curScreen].panes
-  const paneId = currentPanes[currentWindowIndex]
-  const pane = grids[curScreen].getPane(paneId)
+  const pane = grids[curScreen].getPane(tracker.currentWindowIndex)
   pane.maxSize(params)
 }
 
 function maxLoc (curScreen, params) {
-  const currentWinIndex = tracker.currentWindowIndex
-  const currentPanes = grids[curScreen].panes
-  const paneId = currentPanes[currentWindowIndex]
-  const pane = grids[curScreen].getPane(paneId)
+  const pane = grids[curScreen].getPane(tracker.currentWindowIndex)
   pane.maxLoc(params)
 }
 
