@@ -5,36 +5,76 @@ const electron = require('electron')
 const app = electron.app
 const globalShortcut = electron.globalShortcut
 const shorty = require('./utils/shorty')
-const winTracker = require('./utils/win-tracker')
 const BrowserWindow = electron.BrowserWindow
 
 const Grid = require('grid')
-const gridTracker = {}
 const grids = {}
 
-let curScreen = 0
-const curIds = {}
-let id = 1
-
-function switchScreen() {
-  winTracker.switchScreen()
+const tracker = {
+  currentScreenIndex: 0,
+  currentWindowIndex: undefined
 }
 
-function switchWindow(curScreen) {
-  if (grids[curScreen].panes.length > 0) {
-    winTracker.nextWin()
-    const currentPaneId = winTracker.getCurrentWin()
-    grids[curScreen].getPane(currentPaneId).wrapped.focus()
+const skippedInitial = {}
+
+function switchScreen() {
+  tracker.currentScreenIndex = grids.length >= tracker.currentScreenIndex + 1
+    ? tracker.currentScreenIndex + 1
+    : 0
+  tracker.currentWindowIndex = 0
+}
+
+function switchWindow(curScreen, givenIndex) {
+  let windowIndex
+  try {
+    if (typeof givenIndex !== 'undefined' && givenIndex === tracker.currentWindowIndex) {
+      const err = new Error('no more windows!')
+      err.origin = 'switchWindow'
+      throw err
+    }
+    windowIndex = typeof givenIndex === 'undefined'
+      ? tracker.currentWindowIndex - 1
+      : givenIndex
+    grids[curScreen].getPane(windowIndex)
+    tracker.currentWindowIndex = windowIndex
+    grids[curScreen].getPane(windowIndex).wrapped.focus()
+  } catch (e) {
+    if (e.name === 'AssertionError') {
+      if (windowIndex === 0) {
+        const lastPaneIndex = grids[curScreen].panes.length - 1
+        const lastIndex = grids[curScreen].panes[lastPaneIndex].id
+        return switchWindow(curScreen, lastIndex)
+      } else {
+        return switchWindow(curScreen, windowIndex - 1)
+      }
+    } else if (e.origin === 'switchWindow') {
+      const lastPaneIndex = grids[curScreen].panes.length - 1
+      const lastPane = grids[curScreen].panes[lastPaneIndex]
+      lastPane.wrapped.focus()
+      tracker.currentWindowIndex = lastPane.id
+    }
   }
 }
 
 function closeWindow(curScreen) {
   if (grids[curScreen].panes.length > 0) {
-    // const currentPaneId = winTracker.getCurrentWinIndex()
-    const currentPaneId = winTracker.getCurrentWin()
-    console.log('currentPaneId:', currentPaneId)
-    grids[curScreen].remove(currentPaneId)
-    winTracker.removeWin(currentPaneId)
+    grids[curScreen].remove(tracker.currentWindowIndex)
+    try {
+      grids[curScreen].getPane(tracker.currentWindowIndex - 1)
+      tracker.currentWindowIndex = tracker.currentWindowIndex - 1
+      grids[curScreen].getPane(tracker.currentWindowIndex).wrapped.focus()
+    } catch (e) {
+      try {
+        const lastPaneIndex = grids[curScreen].panes.length - 1
+        const lastPaneId = grids[curScreen].panes[lastPaneIndex].id
+        grids[curScreen].getPane(lastPaneId)
+        tracker.currentWindowIndex = lastPaneId
+        grids[curScreen].getPane(lastPaneId).wrapped.focus()
+      } catch (e) {
+        console.error('no more windows left!')
+        tracker.currentWindowIndex = false
+      }
+    }
   }
 }
 
@@ -51,21 +91,22 @@ function toggleAllShow(curScreen) {
 
 function createWindow (curScreen) {
   try {
-    let paneId = winTracker.getLastWinIndex() 
-    ? winTracker.getLastWinIndex() + 1
-    : 1 // hard-coded taskbar, fix this
+    const lastPaneIndex = grids[curScreen].panes.length - 1
+    const lastIndex = grids[curScreen].panes[lastPaneIndex].id
+    const nextWindowIndex = tracker.currentWindowIndex === undefined
+      ? skippedInitial[curScreen]
+      : lastIndex + 1
     grids[curScreen].add(BrowserWindow, {
-      id: paneId,
+      id: nextWindowIndex,
       width: 400,
       height: 300,
       frame: false,
       skipTaskbar: true
     })
 
-    const createdWindow = grids[curScreen].getPane(paneId)
+    const createdWindow = grids[curScreen].getPane(nextWindowIndex)
     createdWindow.wrapped.loadURL(`file://${__dirname}/terminal/index.html`)
-    winTracker.addWin(paneId)
-    winTracker.switchWin(paneId)
+    tracker.currentWindowIndex = nextWindowIndex
 
     // Open the DevTools.
     // createdWindow.wrapped.webContents.openDevTools()
@@ -76,7 +117,10 @@ function createWindow (curScreen) {
 }
 
 function changeCurWindow (curScreen, params) {
-  const pane = grids[curScreen].getPane(gridTracker[curScreen].curWindow)
+  const currentWinIndex = winTracker.currentWindowIndex
+  const currentPanes = grids[curScreen].panes
+  const paneId = currentPanes[currentWindowIndex]
+  const pane = grids[curScreen].getPane(paneId)
   if (params.x || params.y) {
     try {
       pane.changeLocation(
@@ -101,13 +145,17 @@ function changeCurWindow (curScreen, params) {
 }
 
 function maxSize (curScreen, params) {
-  const paneId = winTracker.getCurrentWinIndex()
+  const currentWinIndex = tracker.currentWindowIndex
+  const currentPanes = grids[curScreen].panes
+  const paneId = currentPanes[currentWindowIndex]
   const pane = grids[curScreen].getPane(paneId)
   pane.maxSize(params)
 }
 
 function maxLoc (curScreen, params) {
-  const paneId = winTracker.getCurrentWinIndex()
+  const currentWinIndex = tracker.currentWindowIndex
+  const currentPanes = grids[curScreen].panes
+  const paneId = currentPanes[currentWindowIndex]
   const pane = grids[curScreen].getPane(paneId)
   pane.maxLoc(params)
 }
@@ -119,6 +167,7 @@ app.on('ready', () => {
     const workArea = display.workArea
     const gridOffset = {x: display.bounds.x, y: display.bounds.y}
     const grid = new Grid(bounds.width, bounds.height, gridOffset)
+    skippedInitial[i] = 0
     if (workArea.y > bounds.y) {
       grid.add(null, {
         id: 'taskbarTop',
@@ -127,6 +176,7 @@ app.on('ready', () => {
         x: 0,
         y: 0
       })
+      skippedInitial[i] += 1
     } else if (workArea.x > bounds.x) {
       grid.add(null, {
         id: 'taskBarLeft',
@@ -135,6 +185,7 @@ app.on('ready', () => {
         x: 0,
         y: 0
       })
+      skippedInitial[i] += 1
     } else if (workArea.height < bounds.height) {
       grid.add(null, {
         id: 'taskBarBottom',
@@ -143,6 +194,7 @@ app.on('ready', () => {
         x: 0,
         y: workArea.height
       })
+      skippedInitial[i] += 1
     } else if (workArea.width < bounds.width) {
       grid.add(null, {
         id: 'taskBarRight',
@@ -151,32 +203,30 @@ app.on('ready', () => {
         x: workArea.width,
         y: 0
       })
+      skippedInitial[i] += 1
     }
     grids[i] = grid
-    winTracker.addScreen(i)
   })
-  winTracker.switchScreen()
-  // createWindow()
 
-  shorty.register('F2', 'W', () => createWindow(winTracker.getCurrentScreen()))
-  shorty.register('F2', 'S', () => switchScreen(winTracker.getCurrentScreen()))
-  shorty.register('F2', 'A', () => toggleAllShow(winTracker.getCurrentScreen()))
-  shorty.register('F2', 'Q', () => switchWindow(winTracker.getCurrentScreen()))
-  shorty.register('F2', 'X', () => closeWindow(winTracker.getCurrentScreen()))
-  shorty.register('F2', 'CommandOrControl+H', () => changeCurWindow(winTracker.getCurrentScreen(), {x: '-30'}))
-  shorty.register('F2', 'CommandOrControl+J', () => changeCurWindow(winTracker.getCurrentScreen(), {y: '30'}))
-  shorty.register('F2', 'CommandOrControl+K', () => changeCurWindow(winTracker.getCurrentScreen(), {y: '-30'}))
-  shorty.register('F2', 'CommandOrControl+L', () => changeCurWindow(winTracker.getCurrentScreen(), {x: '30'}))
-  shorty.register('F2', 'Alt+H', () => changeCurWindow(winTracker.getCurrentScreen(), {width: '-30'}))
-  shorty.register('F2', 'Alt+J', () => changeCurWindow(winTracker.getCurrentScreen(), {height: '30'}))
-  shorty.register('F2', 'Alt+K', () => changeCurWindow(winTracker.getCurrentScreen(), {height: '-30'}))
-  shorty.register('F2', 'Alt+L', () => changeCurWindow(winTracker.getCurrentScreen(), {width: '30'}))
-  shorty.register('F2', 'Shift+J', () => maxSize(winTracker.getCurrentScreen(), {down: true}))
-  shorty.register('F2', 'Shift+K', () => maxSize(winTracker.getCurrentScreen(), {up: true}))
-  shorty.register('F2', 'Shift+L', () => maxSize(winTracker.getCurrentScreen(), {right: true}))
-  shorty.register('F2', 'Shift+H', () => maxSize(winTracker.getCurrentScreen(), {left: true}))
-  shorty.register('F2', 'H', () => maxLoc(winTracker.getCurrentScreen(), {left: true}))
-  shorty.register('F2', 'J', () => maxLoc(winTracker.getCurrentScreen(), {down: true}))
-  shorty.register('F2', 'K', () => maxLoc(winTracker.getCurrentScreen(), {up: true}))
-  shorty.register('F2', 'L', () => maxLoc(winTracker.getCurrentScreen(), {right: true}))
+  shorty.register('F2', 'W', () => createWindow(tracker.currentScreenIndex))
+  shorty.register('F2', 'S', () => switchScreen(tracker.currentScreenIndex))
+  shorty.register('F2', 'A', () => toggleAllShow(tracker.currentScreenIndex))
+  shorty.register('F2', 'Q', () => switchWindow(tracker.currentScreenIndex))
+  shorty.register('F2', 'X', () => closeWindow(tracker.currentScreenIndex))
+  shorty.register('F2', 'CommandOrControl+H', () => changeCurWindow(tracker.currentScreenIndex, {x: '-30'}))
+  shorty.register('F2', 'CommandOrControl+J', () => changeCurWindow(tracker.currentScreenIndex, {y: '30'}))
+  shorty.register('F2', 'CommandOrControl+K', () => changeCurWindow(tracker.currentScreenIndex, {y: '-30'}))
+  shorty.register('F2', 'CommandOrControl+L', () => changeCurWindow(tracker.currentScreenIndex, {x: '30'}))
+  shorty.register('F2', 'Alt+H', () => changeCurWindow(tracker.currentScreenIndex, {width: '-30'}))
+  shorty.register('F2', 'Alt+J', () => changeCurWindow(tracker.currentScreenIndex, {height: '30'}))
+  shorty.register('F2', 'Alt+K', () => changeCurWindow(tracker.currentScreenIndex, {height: '-30'}))
+  shorty.register('F2', 'Alt+L', () => changeCurWindow(tracker.currentScreenIndex, {width: '30'}))
+  shorty.register('F2', 'Shift+J', () => maxSize(tracker.currentScreenIndex, {down: true}))
+  shorty.register('F2', 'Shift+K', () => maxSize(tracker.currentScreenIndex, {up: true}))
+  shorty.register('F2', 'Shift+L', () => maxSize(tracker.currentScreenIndex, {right: true}))
+  shorty.register('F2', 'Shift+H', () => maxSize(tracker.currentScreenIndex, {left: true}))
+  shorty.register('F2', 'H', () => maxLoc(tracker.currentScreenIndex, {left: true}))
+  shorty.register('F2', 'J', () => maxLoc(tracker.currentScreenIndex, {down: true}))
+  shorty.register('F2', 'K', () => maxLoc(tracker.currentScreenIndex, {up: true}))
+  shorty.register('F2', 'L', () => maxLoc(tracker.currentScreenIndex, {right: true}))
 })
