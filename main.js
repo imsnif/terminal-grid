@@ -18,10 +18,11 @@ const tracker = {
 const skippedInitial = {}
 
 function switchScreen() {
-  tracker.currentScreenIndex = grids.length >= tracker.currentScreenIndex + 1
+  tracker.currentScreenIndex = Object.keys(grids).length > tracker.currentScreenIndex + 1
     ? tracker.currentScreenIndex + 1
     : 0
-  tracker.currentWindowIndex = 0
+  console.log('switching screen to:', tracker.currentScreenIndex)
+  tracker.currentWindowIndex = undefined
 }
 
 function switchWindow(curScreen, givenIndex) {
@@ -40,7 +41,8 @@ function switchWindow(curScreen, givenIndex) {
     grids[curScreen].getPane(windowIndex).wrapped.focus()
   } catch (e) {
     if (e.name === 'AssertionError') {
-      if (windowIndex === 0) {
+      windowIndex = e.message.match(/^-?\d+/g)[0]
+      if (windowIndex < skippedInitial[curScreen]) {
         const lastPaneIndex = grids[curScreen].panes.length - 1
         const lastIndex = grids[curScreen].panes[lastPaneIndex].id
         return switchWindow(curScreen, lastIndex)
@@ -92,10 +94,9 @@ function toggleAllShow(curScreen) {
 function createWindow (curScreen) {
   try {
     const lastPaneIndex = grids[curScreen].panes.length - 1
-    const lastIndex = grids[curScreen].panes[lastPaneIndex].id
-    const nextWindowIndex = tracker.currentWindowIndex === undefined
+    const nextWindowIndex = grids[curScreen].panes.length === 0
       ? skippedInitial[curScreen]
-      : lastIndex + 1
+      : grids[curScreen].panes[lastPaneIndex].id + 1
     grids[curScreen].add(BrowserWindow, {
       id: nextWindowIndex,
       width: 400,
