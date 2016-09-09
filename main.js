@@ -109,6 +109,7 @@ function createWindow (curScreen) {
 //    const createdWindow = grids[curScreen].getPane(nextWindowIndex)
 //    createdWindow.wrapped.loadURL(`file://${__dirname}/terminal/index.html`)
     tracker.currentWindowIndex = nextWindowIndex
+    setTimeout(() => changeCurWindow(tracker.currentScreenIndex, {width: '10'}), 1000) // TODO: fix this
 
     // Open the DevTools.
     // createdWindow.wrapped.webContents.openDevTools()
