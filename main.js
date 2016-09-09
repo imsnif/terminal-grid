@@ -5,7 +5,7 @@ const electron = require('electron')
 const app = electron.app
 const globalShortcut = electron.globalShortcut
 const shorty = require('./utils/shorty')
-const BrowserWindow = electron.BrowserWindow
+const TerminalWindow = require('electron-terminal-window')
 
 const Grid = require('grid')
 const grids = {}
@@ -21,7 +21,6 @@ function switchScreen() {
   tracker.currentScreenIndex = Object.keys(grids).length > tracker.currentScreenIndex + 1
     ? tracker.currentScreenIndex + 1
     : 0
-  console.log('switching screen to:', tracker.currentScreenIndex)
   tracker.currentWindowIndex = undefined
 }
 
@@ -93,11 +92,13 @@ function toggleAllShow(curScreen) {
 
 function createWindow (curScreen) {
   try {
+    // const term = new TerminalWindow({id: 1, width: 400, height: 300, frame: false, skipTaskbar: true})
+
     const lastPaneIndex = grids[curScreen].panes.length - 1
-    const nextWindowIndex = grids[curScreen].panes.length === 0
+    const nextWindowIndex = grids[curScreen].panes.length === skippedInitial[curScreen]
       ? skippedInitial[curScreen]
       : grids[curScreen].panes[lastPaneIndex].id + 1
-    grids[curScreen].add(BrowserWindow, {
+    grids[curScreen].add(TerminalWindow, {
       id: nextWindowIndex,
       width: 400,
       height: 300,
@@ -105,8 +106,8 @@ function createWindow (curScreen) {
       skipTaskbar: true
     })
 
-    const createdWindow = grids[curScreen].getPane(nextWindowIndex)
-    createdWindow.wrapped.loadURL(`file://${__dirname}/terminal/index.html`)
+//    const createdWindow = grids[curScreen].getPane(nextWindowIndex)
+//    createdWindow.wrapped.loadURL(`file://${__dirname}/terminal/index.html`)
     tracker.currentWindowIndex = nextWindowIndex
 
     // Open the DevTools.
