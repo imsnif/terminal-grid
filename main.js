@@ -3,6 +3,7 @@
 const electron = require('electron')
 
 const app = electron.app
+const ipcMain = electron.ipcMain
 const globalShortcut = electron.globalShortcut
 const shorty = require('./utils/shorty')
 const TerminalWindow = require('electron-terminal-window')
@@ -106,10 +107,7 @@ function createWindow (curScreen) {
       skipTaskbar: true
     })
 
-//    const createdWindow = grids[curScreen].getPane(nextWindowIndex)
-//    createdWindow.wrapped.loadURL(`file://${__dirname}/terminal/index.html`)
     tracker.currentWindowIndex = nextWindowIndex
-    setTimeout(() => changeCurWindow(tracker.currentScreenIndex, {width: '10'}), 1000) // TODO: fix this
 
     // Open the DevTools.
     // createdWindow.wrapped.webContents.openDevTools()
