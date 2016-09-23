@@ -5,7 +5,6 @@ const electron = require('electron')
 const app = electron.app
 const ipcMain = electron.ipcMain
 const globalShortcut = electron.globalShortcut
-const shorty = require('./utils/shorty')
 const TerminalWindow = require('electron-terminal-window')
 
 const Grid = require('grid')
@@ -93,8 +92,6 @@ function toggleAllShow(curScreen) {
 
 function createWindow (curScreen) {
   try {
-    // const term = new TerminalWindow({id: 1, width: 400, height: 300, frame: false, skipTaskbar: true})
-
     const lastPaneIndex = grids[curScreen].panes.length - 1
     const nextWindowIndex = grids[curScreen].panes.length === skippedInitial[curScreen]
       ? skippedInitial[curScreen]
@@ -106,12 +103,7 @@ function createWindow (curScreen) {
       frame: false,
       skipTaskbar: true
     })
-
     tracker.currentWindowIndex = nextWindowIndex
-
-    // Open the DevTools.
-    // createdWindow.wrapped.webContents.openDevTools()
-
   } catch (e) {
     console.error(e)
   }
@@ -200,25 +192,25 @@ app.on('ready', () => {
     grids[i] = grid
   })
 
-  shorty.register('F2', 'W', () => createWindow(tracker.currentScreenIndex))
-  shorty.register('F2', 'S', () => switchScreen(tracker.currentScreenIndex))
-  shorty.register('F2', 'A', () => toggleAllShow(tracker.currentScreenIndex))
-  shorty.register('F2', 'Q', () => switchWindow(tracker.currentScreenIndex))
-  shorty.register('F2', 'X', () => closeWindow(tracker.currentScreenIndex))
-  shorty.register('F2', 'CommandOrControl+H', () => changeCurWindow(tracker.currentScreenIndex, {x: '-30'}))
-  shorty.register('F2', 'CommandOrControl+J', () => changeCurWindow(tracker.currentScreenIndex, {y: '30'}))
-  shorty.register('F2', 'CommandOrControl+K', () => changeCurWindow(tracker.currentScreenIndex, {y: '-30'}))
-  shorty.register('F2', 'CommandOrControl+L', () => changeCurWindow(tracker.currentScreenIndex, {x: '30'}))
-  shorty.register('F2', 'Alt+H', () => changeCurWindow(tracker.currentScreenIndex, {width: '-30'}))
-  shorty.register('F2', 'Alt+J', () => changeCurWindow(tracker.currentScreenIndex, {height: '30'}))
-  shorty.register('F2', 'Alt+K', () => changeCurWindow(tracker.currentScreenIndex, {height: '-30'}))
-  shorty.register('F2', 'Alt+L', () => changeCurWindow(tracker.currentScreenIndex, {width: '30'}))
-  shorty.register('F2', 'Shift+J', () => maxSize(tracker.currentScreenIndex, {down: true}))
-  shorty.register('F2', 'Shift+K', () => maxSize(tracker.currentScreenIndex, {up: true}))
-  shorty.register('F2', 'Shift+L', () => maxSize(tracker.currentScreenIndex, {right: true}))
-  shorty.register('F2', 'Shift+H', () => maxSize(tracker.currentScreenIndex, {left: true}))
-  shorty.register('F2', 'H', () => maxLoc(tracker.currentScreenIndex, {left: true}))
-  shorty.register('F2', 'J', () => maxLoc(tracker.currentScreenIndex, {down: true}))
-  shorty.register('F2', 'K', () => maxLoc(tracker.currentScreenIndex, {up: true}))
-  shorty.register('F2', 'L', () => maxLoc(tracker.currentScreenIndex, {right: true}))
+  globalShortcut.register('Super+W', () => createWindow(tracker.currentScreenIndex))
+  globalShortcut.register('Super+S', () => switchScreen(tracker.currentScreenIndex))
+  globalShortcut.register('Super+A', () => toggleAllShow(tracker.currentScreenIndex))
+  globalShortcut.register('Super+Q', () => switchWindow(tracker.currentScreenIndex))
+  globalShortcut.register('Super+X', () => closeWindow(tracker.currentScreenIndex))
+  globalShortcut.register('Super+CommandOrControl+H', () => changeCurWindow(tracker.currentScreenIndex, {x: '-30'}))
+  globalShortcut.register('Super+CommandOrControl+J', () => changeCurWindow(tracker.currentScreenIndex, {y: '30'}))
+  globalShortcut.register('Super+CommandOrControl+K', () => changeCurWindow(tracker.currentScreenIndex, {y: '-30'}))
+  globalShortcut.register('Super+CommandOrControl+L', () => changeCurWindow(tracker.currentScreenIndex, {x: '30'}))
+  globalShortcut.register('Super+Alt+H', () => changeCurWindow(tracker.currentScreenIndex, {width: '-30'}))
+  globalShortcut.register('Super+Alt+J', () => changeCurWindow(tracker.currentScreenIndex, {height: '30'}))
+  globalShortcut.register('Super+Alt+K', () => changeCurWindow(tracker.currentScreenIndex, {height: '-30'}))
+  globalShortcut.register('Super+Alt+L', () => changeCurWindow(tracker.currentScreenIndex, {width: '30'}))
+  globalShortcut.register('Super+Shift+J', () => maxSize(tracker.currentScreenIndex, {down: true}))
+  globalShortcut.register('Super+Shift+K', () => maxSize(tracker.currentScreenIndex, {up: true}))
+  globalShortcut.register('Super+Shift+L', () => maxSize(tracker.currentScreenIndex, {right: true}))
+  globalShortcut.register('Super+Shift+H', () => maxSize(tracker.currentScreenIndex, {left: true}))
+  globalShortcut.register('Super+H', () => maxLoc(tracker.currentScreenIndex, {left: true}))
+  globalShortcut.register('Super+J', () => maxLoc(tracker.currentScreenIndex, {down: true}))
+  globalShortcut.register('Super+K', () => maxLoc(tracker.currentScreenIndex, {up: true}))
+  globalShortcut.register('Super+L', () => maxLoc(tracker.currentScreenIndex, {right: true}))
 })
