@@ -28,7 +28,8 @@ function switchScreen() {
 function switchWindow() {
   try {
     const allWindows = BrowserWindow.getAllWindows()
-    const focusedWindow = BrowserWindow.getFocusedWindow() || allWindows[0]
+    const focusedWindow = BrowserWindow.getFocusedWindow()
+    if (!focusedWindow) return allWindows[0].focus()
     const currentIndex = allWindows
       .map(w => w.id)
       .indexOf(focusedWindow.id)
@@ -36,31 +37,34 @@ function switchWindow() {
     const nextIndex = currentIndex + 1 > lastIndex
       ? 0
       : currentIndex + 1
+    console.log('nextIndex:', nextIndex)
     allWindows[nextIndex].focus()
   } catch (e) {
     console.error(e)
   }
 }
 
-function closeWindow(curScreen) {
-  if (grids[curScreen].panes.length > 0) {
-    grids[curScreen].remove(tracker.currentWindowIndex)
-    try {
-      grids[curScreen].getPane(tracker.currentWindowIndex - 1)
-      tracker.currentWindowIndex = tracker.currentWindowIndex - 1
-      grids[curScreen].getPane(tracker.currentWindowIndex).wrapped.focus()
-    } catch (e) {
-      try {
-        const lastPaneIndex = grids[curScreen].panes.length - 1
-        const lastPaneId = grids[curScreen].panes[lastPaneIndex].id
-        grids[curScreen].getPane(lastPaneId)
-        tracker.currentWindowIndex = lastPaneId
-        grids[curScreen].getPane(lastPaneId).wrapped.focus()
-      } catch (e) {
-        console.error('no more windows left!')
-        tracker.currentWindowIndex = false
-      }
-    }
+function getGrid (winId) {
+  const gridIndex = Object.keys(grids)
+    .filter(gridId => {
+      const grid = grids[gridId]
+      return grid.panes.some(p => {
+        return p.wrapped.id === winId
+      })
+    })[0]
+  return grids[gridIndex]
+}
+
+function closeWindow() {
+  try {
+    const allWindows = BrowserWindow.getAllWindows()
+    const focusedWindow = BrowserWindow.getFocusedWindow()
+    if (!focusedWindow) return // only close focused window
+    const focusedGrid = getGrid(focusedWindow.id)
+    focusedGrid.remove(focusedWindow.id)
+    switchWindow()
+  } catch (e) {
+    console.error(e)
   }
 }
 
@@ -182,7 +186,7 @@ app.on('ready', () => {
   globalShortcut.register('Super+A', () => toggleAllShow(tracker.currentScreenIndex))
   //globalShortcut.register('Super+Q', () => switchWindow(tracker.currentScreenIndex))
   globalShortcut.register('Super+Q', () => switchWindow())
-  globalShortcut.register('Super+X', () => closeWindow(tracker.currentScreenIndex))
+  globalShortcut.register('Super+X', () => closeWindow())
   globalShortcut.register('Super+CommandOrControl+H', () => changeCurWindow(tracker.currentScreenIndex, {x: '-30'}))
   globalShortcut.register('Super+CommandOrControl+J', () => changeCurWindow(tracker.currentScreenIndex, {y: '30'}))
   globalShortcut.register('Super+CommandOrControl+K', () => changeCurWindow(tracker.currentScreenIndex, {y: '-30'}))
