@@ -5,6 +5,7 @@ const electron = require('electron')
 const app = electron.app
 const ipcMain = electron.ipcMain
 const globalShortcut = electron.globalShortcut
+const BrowserWindow = electron.BrowserWindow
 const TerminalWindow = require('electron-terminal-window')
 
 const Grid = require('grid')
@@ -24,36 +25,20 @@ function switchScreen() {
   tracker.currentWindowIndex = undefined
 }
 
-function switchWindow(curScreen, givenIndex) {
-  let windowIndex
+function switchWindow() {
   try {
-    if (typeof givenIndex !== 'undefined' && givenIndex === tracker.currentWindowIndex) {
-      const err = new Error('no more windows!')
-      err.origin = 'switchWindow'
-      throw err
-    }
-    windowIndex = typeof givenIndex === 'undefined'
-      ? tracker.currentWindowIndex - 1
-      : givenIndex
-    grids[curScreen].getPane(windowIndex)
-    tracker.currentWindowIndex = windowIndex
-    grids[curScreen].getPane(windowIndex).wrapped.focus()
+    const allWindows = BrowserWindow.getAllWindows()
+    const focusedWindow = BrowserWindow.getFocusedWindow() || allWindows[0]
+    const currentIndex = allWindows
+      .map(w => w.id)
+      .indexOf(focusedWindow.id)
+    const lastIndex = allWindows.length - 1
+    const nextIndex = currentIndex + 1 > lastIndex
+      ? 0
+      : currentIndex + 1
+    allWindows[nextIndex].focus()
   } catch (e) {
-    if (e.name === 'AssertionError') {
-      windowIndex = e.message.match(/^-?\d+/g)[0]
-      if (windowIndex < skippedInitial[curScreen]) {
-        const lastPaneIndex = grids[curScreen].panes.length - 1
-        const lastIndex = grids[curScreen].panes[lastPaneIndex].id
-        return switchWindow(curScreen, lastIndex)
-      } else {
-        return switchWindow(curScreen, windowIndex - 1)
-      }
-    } else if (e.origin === 'switchWindow') {
-      const lastPaneIndex = grids[curScreen].panes.length - 1
-      const lastPane = grids[curScreen].panes[lastPaneIndex]
-      lastPane.wrapped.focus()
-      tracker.currentWindowIndex = lastPane.id
-    }
+    console.error(e)
   }
 }
 
@@ -195,7 +180,8 @@ app.on('ready', () => {
   globalShortcut.register('Super+W', () => createWindow(tracker.currentScreenIndex))
   globalShortcut.register('Super+S', () => switchScreen(tracker.currentScreenIndex))
   globalShortcut.register('Super+A', () => toggleAllShow(tracker.currentScreenIndex))
-  globalShortcut.register('Super+Q', () => switchWindow(tracker.currentScreenIndex))
+  //globalShortcut.register('Super+Q', () => switchWindow(tracker.currentScreenIndex))
+  globalShortcut.register('Super+Q', () => switchWindow())
   globalShortcut.register('Super+X', () => closeWindow(tracker.currentScreenIndex))
   globalShortcut.register('Super+CommandOrControl+H', () => changeCurWindow(tracker.currentScreenIndex, {x: '-30'}))
   globalShortcut.register('Super+CommandOrControl+J', () => changeCurWindow(tracker.currentScreenIndex, {y: '30'}))
