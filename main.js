@@ -52,7 +52,12 @@ function getGrid (winId) {
         return p.wrapped.id === winId
       })
     })[0]
-  return grids[gridIndex]
+  return grids[gridIndex || 0]
+}
+
+function getPane (winId) {
+  const grid = getGrid(winId)
+  return grid.getPane(winId)
 }
 
 function closeWindow() {
@@ -71,35 +76,32 @@ function closeWindow() {
 function toggleAllShow(curScreen) {
   const curGrid = grids[curScreen]
   curGrid.minimized = curGrid.minimized || false
-  if (curGrid.minimized) {
-    grids[curGrid].panes.filter(w => w.wrapped && w.wrapped.restore).forEach(w => w.wrapped.restore())
-  } else {
-    grids[grid].panes.filter(w => w.wrapped && w.wrapped.minimize).forEach(w => w.wrapped.minimize())
-  }
+  const action = curGrid.minimized ? 'restore' : 'minimize'
+  curGrid.panes.forEach(w => w.wrapped &&
+    typeof w.wrapped[action]=== 'function' &&
+    w.wrapped[action]()
+  )
   curGrid.minimized = !curGrid.minimized
 }
 
-function createWindow (curScreen) {
+function createWindow () {
   try {
-    const lastPaneIndex = grids[curScreen].panes.length - 1
-    const nextWindowIndex = grids[curScreen].panes.length === skippedInitial[curScreen]
-      ? skippedInitial[curScreen]
-      : grids[curScreen].panes[lastPaneIndex].id + 1
-    grids[curScreen].add(TerminalWindow, {
-      id: nextWindowIndex,
+    const grid = getGrid()
+    grid.add(TerminalWindow, {
       width: 400,
       height: 300,
       frame: false,
       skipTaskbar: true
     })
-    tracker.currentWindowIndex = nextWindowIndex
   } catch (e) {
     console.error(e)
   }
 }
 
 function changeCurWindow (curScreen, params) {
-  const pane = grids[curScreen].getPane(tracker.currentWindowIndex)
+  const focusedWindow = BrowserWindow.getFocusedWindow()
+  if (!focusedWindow) return // only change focused window
+  const pane = getPane(focusedWindow.id)
   if (params.x || params.y) {
     try {
       pane.changeLocation(
@@ -124,12 +126,16 @@ function changeCurWindow (curScreen, params) {
 }
 
 function maxSize (curScreen, params) {
-  const pane = grids[curScreen].getPane(tracker.currentWindowIndex)
+  const focusedWindow = BrowserWindow.getFocusedWindow()
+  if (!focusedWindow) return // only change focused window
+  const pane = getPane(focusedWindow.id)
   pane.maxSize(params)
 }
 
 function maxLoc (curScreen, params) {
-  const pane = grids[curScreen].getPane(tracker.currentWindowIndex)
+  const focusedWindow = BrowserWindow.getFocusedWindow()
+  if (!focusedWindow) return // only change focused window
+  const pane = getPane(focusedWindow.id)
   pane.maxLoc(params)
 }
 
@@ -181,10 +187,9 @@ app.on('ready', () => {
     grids[i] = grid
   })
 
-  globalShortcut.register('Super+W', () => createWindow(tracker.currentScreenIndex))
+  globalShortcut.register('Super+W', () => createWindow())
   globalShortcut.register('Super+S', () => switchScreen(tracker.currentScreenIndex))
   globalShortcut.register('Super+A', () => toggleAllShow(tracker.currentScreenIndex))
-  //globalShortcut.register('Super+Q', () => switchWindow(tracker.currentScreenIndex))
   globalShortcut.register('Super+Q', () => switchWindow())
   globalShortcut.register('Super+X', () => closeWindow())
   globalShortcut.register('Super+CommandOrControl+H', () => changeCurWindow(tracker.currentScreenIndex, {x: '-30'}))
