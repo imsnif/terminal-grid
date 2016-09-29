@@ -6,27 +6,11 @@ const app = electron.app
 const ipcMain = electron.ipcMain
 const globalShortcut = electron.globalShortcut
 const BrowserWindow = electron.BrowserWindow
-const TerminalWindow = require('electron-terminal-window')
 
 const Grid = require('grid')
-const grids = {}
-
 const winChanger = require('./utils/win-changer')
 
-const tracker = {
-  currentScreenIndex: 0,
-  currentWindowIndex: undefined
-}
-
-function switchScreen() {
-  // TODO: continue from here to test multiscreen
-  tracker.currentScreenIndex = Object.keys(grids).length > tracker.currentScreenIndex + 1
-    ? tracker.currentScreenIndex + 1
-    : 0
-  tracker.currentWindowIndex = undefined
-}
-
-function changeCurWindow (curScreen, params) {
+function changeCurWindow (params) {
   const focusedWindow = BrowserWindow.getFocusedWindow()
   if (!focusedWindow) return // only change focused window
   const pane = winChanger.getPane(focusedWindow.id)
@@ -53,14 +37,14 @@ function changeCurWindow (curScreen, params) {
   }
 }
 
-function maxSize (curScreen, params) {
+function maxSize (params) {
   const focusedWindow = BrowserWindow.getFocusedWindow()
   if (!focusedWindow) return // only change focused window
   const pane = winChanger.getPane(focusedWindow.id)
   pane.maxSize(params)
 }
 
-function maxLoc (curScreen, params) {
+function maxLoc (params) {
   const focusedWindow = BrowserWindow.getFocusedWindow()
   if (!focusedWindow) return // only change focused window
   const pane = winChanger.getPane(focusedWindow.id)
@@ -121,24 +105,23 @@ app.on('ready', () => {
   globalShortcut.register('Super+8', () => winChanger.createWindow(8))
   globalShortcut.register('Super+9', () => winChanger.createWindow(9))
 
-  globalShortcut.register('Super+S', () => switchScreen(tracker.currentScreenIndex))
   globalShortcut.register('Super+A', () => winChanger.toggleAllShow())
   globalShortcut.register('Super+Q', () => winChanger.switchWindow())
   globalShortcut.register('Super+X', () => winChanger.closeWindow())
-  globalShortcut.register('Super+CommandOrControl+H', () => changeCurWindow(tracker.currentScreenIndex, {x: '-30'}))
-  globalShortcut.register('Super+CommandOrControl+J', () => changeCurWindow(tracker.currentScreenIndex, {y: '30'}))
-  globalShortcut.register('Super+CommandOrControl+K', () => changeCurWindow(tracker.currentScreenIndex, {y: '-30'}))
-  globalShortcut.register('Super+CommandOrControl+L', () => changeCurWindow(tracker.currentScreenIndex, {x: '30'}))
-  globalShortcut.register('Super+Alt+H', () => changeCurWindow(tracker.currentScreenIndex, {width: '-30'}))
-  globalShortcut.register('Super+Alt+J', () => changeCurWindow(tracker.currentScreenIndex, {height: '30'}))
-  globalShortcut.register('Super+Alt+K', () => changeCurWindow(tracker.currentScreenIndex, {height: '-30'}))
-  globalShortcut.register('Super+Alt+L', () => changeCurWindow(tracker.currentScreenIndex, {width: '30'}))
-  globalShortcut.register('Super+Shift+J', () => maxSize(tracker.currentScreenIndex, {down: true}))
-  globalShortcut.register('Super+Shift+K', () => maxSize(tracker.currentScreenIndex, {up: true}))
-  globalShortcut.register('Super+Shift+L', () => maxSize(tracker.currentScreenIndex, {right: true}))
-  globalShortcut.register('Super+Shift+H', () => maxSize(tracker.currentScreenIndex, {left: true}))
-  globalShortcut.register('Super+H', () => maxLoc(tracker.currentScreenIndex, {left: true}))
-  globalShortcut.register('Super+J', () => maxLoc(tracker.currentScreenIndex, {down: true}))
-  globalShortcut.register('Super+K', () => maxLoc(tracker.currentScreenIndex, {up: true}))
-  globalShortcut.register('Super+L', () => maxLoc(tracker.currentScreenIndex, {right: true}))
+  globalShortcut.register('Super+CommandOrControl+H', () => changeCurWindow({x: '-30'}))
+  globalShortcut.register('Super+CommandOrControl+J', () => changeCurWindow({y: '30'}))
+  globalShortcut.register('Super+CommandOrControl+K', () => changeCurWindow({y: '-30'}))
+  globalShortcut.register('Super+CommandOrControl+L', () => changeCurWindow({x: '30'}))
+  globalShortcut.register('Super+Alt+H', () => changeCurWindow({width: '-30'}))
+  globalShortcut.register('Super+Alt+J', () => changeCurWindow({height: '30'}))
+  globalShortcut.register('Super+Alt+K', () => changeCurWindow({height: '-30'}))
+  globalShortcut.register('Super+Alt+L', () => changeCurWindow({width: '30'}))
+  globalShortcut.register('Super+Shift+J', () => maxSize({down: true}))
+  globalShortcut.register('Super+Shift+K', () => maxSize({up: true}))
+  globalShortcut.register('Super+Shift+L', () => maxSize({right: true}))
+  globalShortcut.register('Super+Shift+H', () => maxSize({left: true}))
+  globalShortcut.register('Super+H', () => maxLoc({left: true}))
+  globalShortcut.register('Super+J', () => maxLoc({down: true}))
+  globalShortcut.register('Super+K', () => maxLoc({up: true}))
+  globalShortcut.register('Super+L', () => maxLoc({right: true}))
 })
