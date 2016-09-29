@@ -13,9 +13,10 @@ module.exports = {
   addGrid: function addGrid (grid) {
     grids.push(grid)
   },
-  createWindow: function createWindow () {
+  createWindow: function createWindow (gridId) {
     try {
-      const grid = getGrid() || grids[0]
+      const grid = typeof gridId === 'number' && typeof grids[gridId] === 'object'
+        ? grids[gridId] : getGrid() || grids[0]
       grid.add(TerminalWindow, {
         width: 400,
         height: 300,

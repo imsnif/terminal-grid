@@ -19,6 +19,7 @@ const tracker = {
 }
 
 function switchScreen() {
+  // TODO: continue from here to test multiscreen
   tracker.currentScreenIndex = Object.keys(grids).length > tracker.currentScreenIndex + 1
     ? tracker.currentScreenIndex + 1
     : 0
@@ -109,7 +110,17 @@ app.on('ready', () => {
     winChanger.addGrid(grid)
   })
 
-  globalShortcut.register('Super+W', () => winChanger.createWindow())
+  globalShortcut.register('Super+0', () => winChanger.createWindow(0))
+  globalShortcut.register('Super+1', () => winChanger.createWindow(1))
+  globalShortcut.register('Super+2', () => winChanger.createWindow(2))
+  globalShortcut.register('Super+3', () => winChanger.createWindow(3))
+  globalShortcut.register('Super+4', () => winChanger.createWindow(4))
+  globalShortcut.register('Super+5', () => winChanger.createWindow(5))
+  globalShortcut.register('Super+6', () => winChanger.createWindow(6))
+  globalShortcut.register('Super+7', () => winChanger.createWindow(7))
+  globalShortcut.register('Super+8', () => winChanger.createWindow(8))
+  globalShortcut.register('Super+9', () => winChanger.createWindow(9))
+
   globalShortcut.register('Super+S', () => switchScreen(tracker.currentScreenIndex))
   globalShortcut.register('Super+A', () => winChanger.toggleAllShow())
   globalShortcut.register('Super+Q', () => winChanger.switchWindow())
