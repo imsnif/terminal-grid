@@ -10,10 +10,6 @@ const Grid = require('grid')
 const winChanger = require('./utils/win-changer')
 const screenGrid = require('./utils/screen-grid')
 
-app.on('quit', () => {
-  console.log('quitting')
-})
-
 app.on('ready', () => {
   const displays = electron.screen.getAllDisplays()
   displays.forEach((display, i) => {
