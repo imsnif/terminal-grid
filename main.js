@@ -10,10 +10,49 @@ const BrowserWindow = electron.BrowserWindow
 const Grid = require('grid')
 const winChanger = require('./utils/win-changer')
 
+const TerminalWindow = require('electron-terminal-window')
+
+let grids = []
+
+function getGrid (winId) {
+  if (winId === undefined) {
+    winId = BrowserWindow.getFocusedWindow()
+    if (winId === null) return false
+  }
+  const gridIndex = Object.keys(grids)
+    .filter(gridId => {
+      const grid = grids[gridId]
+      return grid.panes.some(p => {
+        return p.wrapped.id === winId
+      })
+    })[0]
+  return grids[gridIndex || 0]
+}
+
+function getPane (winId) {
+  const grid = getGrid(winId)
+  return grid.getPane(winId)
+}
+
+function createWindow (gridId) {
+  try {
+    const grid = typeof gridId === 'number' && typeof grids[gridId] === 'object'
+      ? grids[gridId] : getGrid() || grids[0]
+    grid.add(TerminalWindow, {
+      width: 400,
+      height: 300,
+      frame: false,
+      skipTaskbar: true
+    })
+  } catch (e) {
+    console.error(e)
+  }
+}
+
 function changeCurWindow (params) {
   const focusedWindow = BrowserWindow.getFocusedWindow()
   if (!focusedWindow) return // only change focused window
-  const pane = winChanger.getPane(focusedWindow.id)
+  const pane = getPane(focusedWindow.id)
   if (params.x || params.y) {
     try {
       pane.changeLocation(
@@ -40,16 +79,20 @@ function changeCurWindow (params) {
 function maxSize (params) {
   const focusedWindow = BrowserWindow.getFocusedWindow()
   if (!focusedWindow) return // only change focused window
-  const pane = winChanger.getPane(focusedWindow.id)
+  const pane = getPane(focusedWindow.id)
   pane.maxSize(params)
 }
 
 function maxLoc (params) {
   const focusedWindow = BrowserWindow.getFocusedWindow()
   if (!focusedWindow) return // only change focused window
-  const pane = winChanger.getPane(focusedWindow.id)
+  const pane = getPane(focusedWindow.id)
   pane.maxLoc(params)
 }
+
+app.on('quit', () => {
+  console.log('quitting')
+})
 
 app.on('ready', () => {
   const displays = electron.screen.getAllDisplays()
@@ -91,19 +134,19 @@ app.on('ready', () => {
         y: 0
       })
     }
-    winChanger.addGrid(grid)
+    grids.push(grid)
   })
 
-  globalShortcut.register('Super+0', () => winChanger.createWindow(0))
-  globalShortcut.register('Super+1', () => winChanger.createWindow(1))
-  globalShortcut.register('Super+2', () => winChanger.createWindow(2))
-  globalShortcut.register('Super+3', () => winChanger.createWindow(3))
-  globalShortcut.register('Super+4', () => winChanger.createWindow(4))
-  globalShortcut.register('Super+5', () => winChanger.createWindow(5))
-  globalShortcut.register('Super+6', () => winChanger.createWindow(6))
-  globalShortcut.register('Super+7', () => winChanger.createWindow(7))
-  globalShortcut.register('Super+8', () => winChanger.createWindow(8))
-  globalShortcut.register('Super+9', () => winChanger.createWindow(9))
+  globalShortcut.register('Super+0', () => createWindow(0))
+  globalShortcut.register('Super+1', () => createWindow(1))
+  globalShortcut.register('Super+2', () => createWindow(2))
+  globalShortcut.register('Super+3', () => createWindow(3))
+  globalShortcut.register('Super+4', () => createWindow(4))
+  globalShortcut.register('Super+5', () => createWindow(5))
+  globalShortcut.register('Super+6', () => createWindow(6))
+  globalShortcut.register('Super+7', () => createWindow(7))
+  globalShortcut.register('Super+8', () => createWindow(8))
+  globalShortcut.register('Super+9', () => createWindow(9))
 
   globalShortcut.register('Super+A', () => winChanger.toggleAllShow())
   globalShortcut.register('Super+Q', () => winChanger.switchWindow())
