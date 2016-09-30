@@ -5,53 +5,11 @@ const electron = require('electron')
 const app = electron.app
 const globalShortcut = electron.globalShortcut
 
-const Grid = require('grid')
-
 const winChanger = require('./utils/win-changer')
 const screenGrid = require('./utils/screen-grid')
 
 app.on('ready', () => {
-  const displays = electron.screen.getAllDisplays()
-  displays.forEach((display, i) => {
-    const bounds = display.bounds
-    const workArea = display.workArea
-    const gridOffset = {x: display.bounds.x, y: display.bounds.y}
-    const grid = new Grid(bounds.width, bounds.height, gridOffset)
-    if (workArea.y > bounds.y) {
-      grid.add(null, {
-        id: 'taskbarTop',
-        width: bounds.width,
-        height: workArea.y,
-        x: 0,
-        y: 0
-      })
-    } else if (workArea.x > bounds.x) {
-      grid.add(null, {
-        id: 'taskBarLeft',
-        width: workArea.x,
-        height: bounds.height,
-        x: 0,
-        y: 0
-      })
-    } else if (workArea.height < bounds.height) {
-      grid.add(null, {
-        id: 'taskBarBottom',
-        width: bounds.width,
-        height: bounds.height - workArea.height,
-        x: 0,
-        y: workArea.height
-      })
-    } else if (workArea.width < bounds.width) {
-      grid.add(null, {
-        id: 'taskBarRight',
-        width: bounds.width - workArea.width,
-        height: bounds.height,
-        x: workArea.width,
-        y: 0
-      })
-    }
-    screenGrid.addGrid(grid)
-  })
+  screenGrid.init()
 
   globalShortcut.register('Super+0', () => screenGrid.createWindow(0))
   globalShortcut.register('Super+1', () => screenGrid.createWindow(1))
