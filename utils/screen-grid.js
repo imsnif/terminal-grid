@@ -4,9 +4,13 @@ const electron = require('electron')
 const BrowserWindow = electron.BrowserWindow
 const TerminalWindow = require('electron-terminal-window')
 
+const util = require('util')
+
 const Grid = require('grid')
 
 let grids = []
+
+const detectTaskbars = require('../script/xfce4-panel-positions')
 
 function getGrid (winId) {
   if (winId === undefined) {
@@ -30,47 +34,25 @@ function getPane (winId) {
 
 module.exports = {
   init: function init () {
-    const screen = electron.screen
-    const displays = screen.getAllDisplays()
-    displays.forEach((display, i) => {
-      const bounds = display.bounds
-      const workArea = display.workArea
-      const gridOffset = {x: display.bounds.x, y: display.bounds.y}
-      const grid = new Grid(bounds.width, bounds.height, gridOffset)
-      if (workArea.y > bounds.y) {
-        grid.add(null, {
-          id: 'taskbarTop',
-          width: bounds.width,
-          height: workArea.y,
-          x: 0,
-          y: 0
-        })
-      } else if (workArea.x > bounds.x) {
-        grid.add(null, {
-          id: 'taskBarLeft',
-          width: workArea.x,
-          height: bounds.height,
-          x: 0,
-          y: 0
-        })
-      } else if (workArea.height < bounds.height) {
-        grid.add(null, {
-          id: 'taskBarBottom',
-          width: bounds.width,
-          height: bounds.height - workArea.height,
-          x: 0,
-          y: workArea.height
-        })
-      } else if (workArea.width < bounds.width) {
-        grid.add(null, {
-          id: 'taskBarRight',
-          width: bounds.width - workArea.width,
-          height: bounds.height,
-          x: workArea.width,
-          y: 0
-        })
-      }
-      grids.push(grid)
+    return detectTaskbars().then((taskbar) => {
+      const screen = electron.screen
+      const displays = screen.getAllDisplays()
+      displays.forEach((display, i) => {
+        const bounds = display.bounds
+        const workArea = display.workArea
+        if (taskbar.x === bounds.x && taskbar.y === bounds.y) {
+          // TODO: support multiple taskbars
+          // and different taskbar types (horizontal, vertical, random blob in the middle of the screen, etc.)
+          const gridOffset = {x: bounds.x, y: bounds.y}
+          const grid = new Grid(bounds.width, bounds.height, gridOffset)
+          grid.add(null, Object.assign({}, taskbar, {id: 'taskbar', width: bounds.width}))
+          grids.push(grid)
+        } else {
+          const gridOffset = {x: bounds.x, y: bounds.y}
+          const grid = new Grid(bounds.width, bounds.height, gridOffset)
+          grids.push(grid)
+        }
+      })
     })
   },
   createWindow: function createWindow (gridId) {
