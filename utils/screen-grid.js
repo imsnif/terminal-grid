@@ -4,13 +4,81 @@ const electron = require('electron')
 const BrowserWindow = electron.BrowserWindow
 const TerminalWindow = require('electron-terminal-window')
 
-const util = require('util')
-
 const Grid = require('grid')
+const uuid = require('uuid')
 
 let grids = []
 
-const detectTaskbars = require('../script/xfce4-panel-positions')
+function testWindow (bounds) {
+  const ipcMain = electron.ipcMain
+  return new Promise((resolve, reject) => {
+    const eventId = uuid.v4()
+    const win = new BrowserWindow({
+      y: bounds.y,
+      x: bounds.x,
+      frame: false
+    })
+    win.loadURL(`file://${__dirname}/index.html`)
+    win.maximize()
+    const changedBounds = win.getContentBounds()
+    ipcMain.once(eventId, (e, winSize) => {
+      win.close()
+      resolve(Object.assign({}, winSize, {x: changedBounds.x, y: changedBounds.y}))
+    })
+    setTimeout(() => win.webContents.executeJavaScript(`
+      var ipcRenderer = require('electron').ipcRenderer
+      ipcRenderer.send('${eventId}', {width: window.innerWidth, height: window.innerHeight})
+    `), 500)
+  })
+  .catch(e => console.error('e:', e))
+}
+
+function findBars (bounds, workArea) {
+  if (workArea.y > bounds.y) {
+    return ({
+      id: 'topBar',
+      width: workArea.width,
+      height: workArea.y - bounds.y,
+      x: 0,
+      y: 0
+    })
+  }
+  if (bounds.y - workArea.y + bounds.height - workArea.height > 0) {
+    return ({
+      id: 'bottomBar',
+      width: workArea.width,
+      height: bounds.y - workArea.y + bounds.height - workArea.height,
+      y: workArea.y,
+      x: 0
+    })
+  }
+  if (workArea.x > bounds.x) {
+    return ({
+      id: 'leftBar',
+      width: workArea.x - bounds.x,
+      height: workArea.height,
+      x: 0,
+      y: 0
+    })
+  }
+  if (bounds.x - workArea.x + bounds.width - workArea.width > 0) {
+    return ({
+      id: 'rightBar',
+      width: bounds.x - workArea.x + bounds.width - workArea.width,
+      height: workArea.height,
+      x: workArea.x + workArea.width,
+      y: 0
+    })
+  }
+}
+
+function detectPanel (bounds) {
+  const screen = electron.screen
+  const displays = screen.getAllDisplays()
+  return testWindow(bounds)
+  .then((workArea) => findBars(bounds, workArea))
+  .catch(e => console.error(e))
+}
 
 function getGrid (winId) {
   if (winId === undefined) {
@@ -34,26 +102,21 @@ function getPane (winId) {
 
 module.exports = {
   init: function init () {
-    return detectTaskbars().then((taskbar) => {
-      const screen = electron.screen
-      const displays = screen.getAllDisplays()
-      displays.forEach((display, i) => {
-        const bounds = display.bounds
-        const workArea = display.workArea
-        if (taskbar.x === bounds.x && taskbar.y === bounds.y) {
-          // TODO: support multiple taskbars
-          // and different taskbar types (horizontal, vertical, random blob in the middle of the screen, etc.)
+    const screen = electron.screen
+    const displays = screen.getAllDisplays()
+    return Promise.all(
+      displays.map(display => {
+        return detectPanel(display.bounds)
+        .then(panel => {
+          const bounds = display.bounds
           const gridOffset = {x: bounds.x, y: bounds.y}
           const grid = new Grid(bounds.width, bounds.height, gridOffset)
-          grid.add(null, Object.assign({}, taskbar, {id: 'taskbar', width: bounds.width}))
+          if (panel) grid.add(null, panel)
           grids.push(grid)
-        } else {
-          const gridOffset = {x: bounds.x, y: bounds.y}
-          const grid = new Grid(bounds.width, bounds.height, gridOffset)
-          grids.push(grid)
-        }
+        })
+        .catch(e => console.error('e:', e))
       })
-    })
+    )
   },
   createWindow: function createWindow (gridId) {
     try {

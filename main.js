@@ -43,3 +43,5 @@ app.on('ready', () => {
     globalShortcut.register('Super+L', () => screenGrid.maxLoc({right: true}))
   })
 })
+
+app.on('window-all-closed', () => {}) // keep app open after all windows closed
