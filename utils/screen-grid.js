@@ -47,8 +47,8 @@ function findBars (bounds, workArea) {
     return ({
       id: 'bottomBar',
       width: workArea.width,
-      height: bounds.y - workArea.y + bounds.height - workArea.height,
-      y: workArea.y,
+      height: bounds.height - workArea.height,
+      y: workArea.height,
       x: 0
     })
   }
@@ -66,7 +66,7 @@ function findBars (bounds, workArea) {
       id: 'rightBar',
       width: bounds.x - workArea.x + bounds.width - workArea.width,
       height: workArea.height,
-      x: workArea.x + workArea.width,
+      x: workArea.width,
       y: 0
     })
   }
