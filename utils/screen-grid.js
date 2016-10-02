@@ -14,10 +14,12 @@ function testWindow (bounds) {
   const win = new BrowserWindow({
     y: bounds.y,
     x: bounds.x,
-    frame: false
+    frame: false,
+    skipTaskbar: true
   })
   win.loadURL(`file://${__dirname}/index.html`)
   win.maximize()
+  win.minimize()
   const changedBounds = win.getContentBounds()
   return new Promise(resolve => win.on('maximize', resolve))
   .then(() => rendererVal(win.webContents, '{width: window.outerWidth, height: window.outerHeight}'))
