@@ -3,32 +3,27 @@
 const electron = require('electron')
 const BrowserWindow = electron.BrowserWindow
 const TerminalWindow = require('electron-terminal-window')
+const rendererVal = require('electron-renderer-value')
 
 const Grid = require('grid')
-const uuid = require('uuid')
 
 let grids = []
 
 function testWindow (bounds) {
   const ipcMain = electron.ipcMain
-  return new Promise((resolve, reject) => {
-    const eventId = uuid.v4()
-    const win = new BrowserWindow({
-      y: bounds.y,
-      x: bounds.x,
-      frame: false
-    })
-    win.loadURL(`file://${__dirname}/index.html`)
-    win.maximize()
-    const changedBounds = win.getContentBounds()
-    ipcMain.once(eventId, (e, winSize) => {
-      win.close()
-      resolve(Object.assign({}, winSize, {x: changedBounds.x, y: changedBounds.y}))
-    })
-    setTimeout(() => win.webContents.executeJavaScript(`
-      var ipcRenderer = require('electron').ipcRenderer
-      ipcRenderer.send('${eventId}', {width: window.innerWidth, height: window.innerHeight})
-    `), 500)
+  const win = new BrowserWindow({
+    y: bounds.y,
+    x: bounds.x,
+    frame: false
+  })
+  win.loadURL(`file://${__dirname}/index.html`)
+  win.maximize()
+  const changedBounds = win.getContentBounds()
+  return new Promise(resolve => setTimeout(resolve, 500)) // give window time to load
+  .then(() => rendererVal(win.webContents, '{width: window.innerWidth, height: window.innerHeight}'))
+  .then(size => {
+    win.close()
+    return Object.assign({}, size, {x: changedBounds.x, y: changedBounds.y})
   })
   .catch(e => console.error('e:', e))
 }
