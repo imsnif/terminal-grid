@@ -71,7 +71,6 @@ function findBars (bounds, workArea) {
 
 function detectPanel (bounds) {
   const screen = electron.screen
-  const displays = screen.getAllDisplays()
   return testWindow(bounds)
   .then((workArea) => findBars(bounds, workArea))
   .catch(e => console.error(e))
