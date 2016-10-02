@@ -19,8 +19,8 @@ function testWindow (bounds) {
   win.loadURL(`file://${__dirname}/index.html`)
   win.maximize()
   const changedBounds = win.getContentBounds()
-  return new Promise(resolve => setTimeout(resolve, 500)) // give window time to load
-  .then(() => rendererVal(win.webContents, '{width: window.innerWidth, height: window.innerHeight}'))
+  return new Promise(resolve => win.on('maximize', resolve))
+  .then(() => rendererVal(win.webContents, '{width: window.outerWidth, height: window.outerHeight}'))
   .then(size => {
     win.close()
     return Object.assign({}, size, {x: changedBounds.x, y: changedBounds.y})
