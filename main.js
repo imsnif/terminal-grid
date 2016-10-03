@@ -1,10 +1,6 @@
 'use strict'
 
-const electron = require('electron')
-
-const app = electron.app
-const globalShortcut = electron.globalShortcut
-
+const { app, globalShortcut } = require('electron')
 const WinChanger = require('electron-win-changer')
 const ScreenGrid = require('screen-grid')
 
