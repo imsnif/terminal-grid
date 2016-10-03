@@ -1,26 +1,42 @@
 'use strict'
 
-const { app, globalShortcut } = require('electron')
+const { app, globalShortcut, BrowserWindow } = require('electron')
 const WinChanger = require('electron-win-changer')
 const ScreenGrid = require('screen-grid')
+const TerminalWindow = require('electron-terminal-window')
+
+function closeCurrentWindow () {
+  const focusedWindow = BrowserWindow.getFocusedWindow()
+  if (!focusedWindow) return // only close focused window
+  focusedWindow.close()
+}
+
+function winParams () {
+  return {
+    width: 400,
+    height: 300,
+    frame: false,
+    skipTaskbar: true
+  }
+}
 
 app.on('ready', () => {
   const sGrid = new ScreenGrid()
   const wChanger = new WinChanger()
-  globalShortcut.register('Super+0', () => sGrid.createWindow(0))
-  globalShortcut.register('Super+1', () => sGrid.createWindow(1))
-  globalShortcut.register('Super+2', () => sGrid.createWindow(2))
-  globalShortcut.register('Super+3', () => sGrid.createWindow(3))
-  globalShortcut.register('Super+4', () => sGrid.createWindow(4))
-  globalShortcut.register('Super+5', () => sGrid.createWindow(5))
-  globalShortcut.register('Super+6', () => sGrid.createWindow(6))
-  globalShortcut.register('Super+7', () => sGrid.createWindow(7))
-  globalShortcut.register('Super+8', () => sGrid.createWindow(8))
-  globalShortcut.register('Super+9', () => sGrid.createWindow(9))
+  globalShortcut.register('Super+0', () => sGrid.createWindow(0, TerminalWindow, winParams()))
+  globalShortcut.register('Super+1', () => sGrid.createWindow(1, TerminalWindow, winParams()))
+  globalShortcut.register('Super+2', () => sGrid.createWindow(2, TerminalWindow, winParams()))
+  globalShortcut.register('Super+3', () => sGrid.createWindow(3, TerminalWindow, winParams()))
+  globalShortcut.register('Super+4', () => sGrid.createWindow(4, TerminalWindow, winParams()))
+  globalShortcut.register('Super+5', () => sGrid.createWindow(5, TerminalWindow, winParams()))
+  globalShortcut.register('Super+6', () => sGrid.createWindow(6, TerminalWindow, winParams()))
+  globalShortcut.register('Super+7', () => sGrid.createWindow(7, TerminalWindow, winParams()))
+  globalShortcut.register('Super+8', () => sGrid.createWindow(8, TerminalWindow, winParams()))
+  globalShortcut.register('Super+9', () => sGrid.createWindow(9, TerminalWindow, winParams()))
 
   globalShortcut.register('Super+A', () => wChanger.toggleAllShow())
   globalShortcut.register('Super+Q', () => wChanger.switchWindow())
-  globalShortcut.register('Super+X', () => wChanger.closeWindow())
+  globalShortcut.register('Super+X', () => closeCurrentWindow())
   globalShortcut.register('Super+CommandOrControl+H', () => sGrid.changeCurWindow({x: '-30'}))
   globalShortcut.register('Super+CommandOrControl+J', () => sGrid.changeCurWindow({y: '30'}))
   globalShortcut.register('Super+CommandOrControl+K', () => sGrid.changeCurWindow({y: '-30'}))
