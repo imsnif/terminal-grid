@@ -5,11 +5,12 @@ const electron = require('electron')
 const app = electron.app
 const globalShortcut = electron.globalShortcut
 
-const winChanger = require('./utils/win-changer')
+const WinChanger = require('electron-win-changer')
 const ScreenGrid = require('screen-grid')
 
 app.on('ready', () => {
   const sGrid = new ScreenGrid()
+  const wChanger = new WinChanger()
   globalShortcut.register('Super+0', () => sGrid.createWindow(0))
   globalShortcut.register('Super+1', () => sGrid.createWindow(1))
   globalShortcut.register('Super+2', () => sGrid.createWindow(2))
@@ -21,9 +22,9 @@ app.on('ready', () => {
   globalShortcut.register('Super+8', () => sGrid.createWindow(8))
   globalShortcut.register('Super+9', () => sGrid.createWindow(9))
 
-  globalShortcut.register('Super+A', () => winChanger.toggleAllShow())
-  globalShortcut.register('Super+Q', () => winChanger.switchWindow())
-  globalShortcut.register('Super+X', () => winChanger.closeWindow())
+  globalShortcut.register('Super+A', () => wChanger.toggleAllShow())
+  globalShortcut.register('Super+Q', () => wChanger.switchWindow())
+  globalShortcut.register('Super+X', () => wChanger.closeWindow())
   globalShortcut.register('Super+CommandOrControl+H', () => sGrid.changeCurWindow({x: '-30'}))
   globalShortcut.register('Super+CommandOrControl+J', () => sGrid.changeCurWindow({y: '30'}))
   globalShortcut.register('Super+CommandOrControl+K', () => sGrid.changeCurWindow({y: '-30'}))
