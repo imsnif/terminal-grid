@@ -23,6 +23,10 @@ function winParams () {
 app.on('ready', () => {
   const sGrid = new ScreenGrid()
   const wChanger = new WinChanger()
+  generalMode(sGrid, wChanger)
+})
+
+function generalMode (sGrid, wChanger) {
   globalShortcut.register('Super+0', () => sGrid.createWindow(0, TerminalWindow, winParams()))
   globalShortcut.register('Super+1', () => sGrid.createWindow(1, TerminalWindow, winParams()))
   globalShortcut.register('Super+2', () => sGrid.createWindow(2, TerminalWindow, winParams()))
@@ -53,6 +57,6 @@ app.on('ready', () => {
   globalShortcut.register('Super+J', () => sGrid.maxLoc({down: true}))
   globalShortcut.register('Super+K', () => sGrid.maxLoc({up: true}))
   globalShortcut.register('Super+L', () => sGrid.maxLoc({right: true}))
-})
+}
 
 app.on('window-all-closed', () => {}) // keep app open after all windows closed
