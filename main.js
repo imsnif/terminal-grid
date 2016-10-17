@@ -23,8 +23,14 @@ function winParams () {
 app.on('ready', () => {
   const sGrid = new ScreenGrid()
   const wChanger = new WinChanger()
-  generalMode(sGrid, wChanger)
+  tmuxMode(sGrid, wChanger)
 })
+
+function tmuxMode (sGrid, wChanger) {
+  sGrid.createWindow(0, TerminalWindow, {maxSize: true, frame: false, skipTaskbar: true})
+  globalShortcut.register('Super+0', () => sGrid.splitCurrentWindow(0, TerminalWindow, {frame: false, skipTaskbar: true}, 'vertical'))
+  globalShortcut.register('Super+Shift+0', () => sGrid.splitCurrentWindow(0, TerminalWindow, {frame: false, skipTaskbar: true}, 'horizontal'))
+}
 
 function generalMode (sGrid, wChanger) {
   globalShortcut.register('Super+0', () => sGrid.createWindow(0, TerminalWindow, winParams()))
