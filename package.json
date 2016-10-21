@@ -13,10 +13,11 @@
   "author": "Aram Drevekenin",
   "license": "MIT",
   "devDependencies": {
-    "electron-prebuilt": "^1.2.0",
-    "electron-rebuild": "^1.2.1"
   },
   "dependencies": {
+    "electron": "^1.4.2",
+    "electron-rebuild": "^1.2.1",
+
     "command-promise": "^2.0.0",
     "electron-renderer-value": "^1.1.0",
     "pty.js": "^0.3.1",
