@@ -23,6 +23,7 @@ function winParams () {
 app.on('ready', () => {
   const sGrid = new ScreenGrid()
   const wChanger = new WinChanger()
+  // generalMode(sGrid, wChanger)
   tmuxMode(sGrid, wChanger)
 })
 
@@ -34,6 +35,14 @@ function tmuxMode (sGrid, wChanger) {
   globalShortcut.register('Super+H', () => sGrid.switchWindow('left'))
   globalShortcut.register('Super+J', () => sGrid.switchWindow('down'))
   globalShortcut.register('Super+K', () => sGrid.switchWindow('up'))
+  globalShortcut.register('Super+Alt+Shift+L', () => sGrid.increaseAndFillCurWinSize('right', 30))
+  globalShortcut.register('Super+Alt+Shift+H', () => sGrid.increaseAndFillCurWinSize('left', 30))
+  globalShortcut.register('Super+Alt+Shift+J', () => sGrid.increaseAndFillCurWinSize('down', 30))
+  globalShortcut.register('Super+Alt+Shift+K', () => sGrid.increaseAndFillCurWinSize('up', 30))
+  globalShortcut.register('Super+Alt+L', () => sGrid.decreaseAndFillCurWinSize('right', 30))
+  globalShortcut.register('Super+Alt+H', () => sGrid.decreaseAndFillCurWinSize('left', 30))
+  globalShortcut.register('Super+Alt+J', () => sGrid.decreaseAndFillCurWinSize('down', 30))
+  globalShortcut.register('Super+Alt+K', () => sGrid.decreaseAndFillCurWinSize('up', 30))
 }
 
 function generalMode (sGrid, wChanger) {
