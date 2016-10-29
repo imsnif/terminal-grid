@@ -28,9 +28,10 @@ app.on('ready', () => {
 })
 
 function tmuxMode (sGrid, wChanger) {
-  sGrid.createWindow(0, TerminalWindow, {maxSize: true, frame: false, skipTaskbar: true})
-  globalShortcut.register('Super+0', () => sGrid.splitCurrentWindow(0, TerminalWindow, {frame: false, skipTaskbar: true}, 'vertical'))
-  globalShortcut.register('Super+Shift+0', () => sGrid.splitCurrentWindow(0, TerminalWindow, {frame: false, skipTaskbar: true}, 'horizontal'))
+  sGrid.createWindow(0, TerminalWindow, {maxSize: true, frame: false, skipTaskbar: true, fillOnClose: true})
+  // TODO: if there are no windows, super+0 should create one
+  globalShortcut.register('Super+0', () => sGrid.splitCurrentWindow(0, TerminalWindow, {frame: false, skipTaskbar: true, fillOnClose: true}, 'vertical'))
+  globalShortcut.register('Super+Shift+0', () => sGrid.splitCurrentWindow(0, TerminalWindow, {frame: false, skipTaskbar: true, fillOnClose: true}, 'horizontal'))
   globalShortcut.register('Super+L', () => sGrid.switchWindow('right'))
   globalShortcut.register('Super+H', () => sGrid.switchWindow('left'))
   globalShortcut.register('Super+J', () => sGrid.switchWindow('down'))
@@ -43,6 +44,7 @@ function tmuxMode (sGrid, wChanger) {
   globalShortcut.register('Super+Alt+H', () => sGrid.decreaseAndFillCurWinSize('left', 30))
   globalShortcut.register('Super+Alt+J', () => sGrid.decreaseAndFillCurWinSize('down', 30))
   globalShortcut.register('Super+Alt+K', () => sGrid.decreaseAndFillCurWinSize('up', 30))
+  globalShortcut.register('Super+X', () => closeCurrentWindow())
 }
 
 function generalMode (sGrid, wChanger) {
