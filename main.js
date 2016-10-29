@@ -44,8 +44,12 @@ function tmuxMode (sGrid, wChanger) {
   globalShortcut.register('Super+Alt+H', () => sGrid.decreaseAndFillCurWinSize('left', 30))
   globalShortcut.register('Super+Alt+J', () => sGrid.decreaseAndFillCurWinSize('down', 30))
   globalShortcut.register('Super+Alt+K', () => sGrid.decreaseAndFillCurWinSize('up', 30))
-  globalShortcut.register('Super+X', () => closeCurrentWindow())
-  globalShortcut.register('Super+Z', () => sGrid.toggleCurrentWinFullSize())
+  globalShortcut.register('Super+Alt+Control+L', () => sGrid.switchWindowContents('right'))
+  globalShortcut.register('Super+Alt+Control+H', () => sGrid.switchWindowContents('left'))
+  globalShortcut.register('Super+Alt+Control+J', () => sGrid.switchWindowContents('down'))
+  globalShortcut.register('Super+Alt+Control+K', () => sGrid.switchWindowContents('up'))
+  globalShortcut.register('Super+Alt+Control+X', () => closeCurrentWindow())
+  globalShortcut.register('Super+Alt+Control+Z', () => sGrid.toggleCurrentWinFullSize())
 }
 
 function generalMode (sGrid, wChanger) {
