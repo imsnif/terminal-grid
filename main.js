@@ -50,6 +50,7 @@ function tmuxMode (sGrid, wChanger) {
   globalShortcut.register('Super+Alt+Control+K', () => sGrid.switchWindowContents('up'))
   globalShortcut.register('Super+X', () => closeCurrentWindow())
   globalShortcut.register('Super+Z', () => sGrid.toggleCurrentWinFullSize())
+  globalShortcut.register('Super+A', () => wChanger.toggleAllShow())
 }
 
 function generalMode (sGrid, wChanger) {
