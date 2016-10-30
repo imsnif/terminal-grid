@@ -12,14 +12,14 @@
   },
   "author": "Aram Drevekenin",
   "license": "MIT",
-  "devDependencies": {
-  },
+  "devDependencies": {},
   "dependencies": {
+    "command-promise": "^2.0.0",
     "electron": "^1.4.2",
     "electron-rebuild": "^1.2.1",
-    "command-promise": "^2.0.0",
     "electron-renderer-value": "^1.1.0",
     "pty.js": "^0.3.1",
+    "validate.js": "^0.10.0",
     "xterm": "^1.1.3"
   }
 }
