@@ -26,7 +26,8 @@ app.on('ready', () => {
   const wChanger = new WinChanger()
   const modes = sGrid.grids.map((g, index) => index % 2
     ? new GeneralMode(g.id, sGrid, wChanger, TerminalWindow)
-    : new TmuxMode(g.id, sGrid, wChanger, TerminalWindow)) // TODO: get config from outside, until then - these can be switched around manually as needed
+    : new TmuxMode(g.id, sGrid, wChanger, TerminalWindow) // TODO: get config from outside, until then - these can be switched around manually as needed
+  )
   const directions = [
     {shortcut: 'H', directionName: 'left'},
     {shortcut: 'J', directionName: 'down'},
@@ -44,7 +45,7 @@ app.on('ready', () => {
     globalShortcut.register(`Super+${index}`, m.addPaneMain)
     globalShortcut.register(`Super+Shift+${index}`, m.addPaneSecondary)
   })
-  globalShortcut.register('Super+X', () => closeCurrentWindow())
+  globalShortcut.register('Super+X', () => modeAtCurrentWindow(modes, (m) => m.closeCurrentPane()))
   globalShortcut.register('Super+Z', () => sGrid.toggleCurrentWinFullSize())
   globalShortcut.register('Super+A', () => wChanger.toggleAllShow())
 })
