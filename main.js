@@ -21,6 +21,26 @@ function modeAtCurrentWindow (modes, action) {
   return action(mode)
 }
 
+function currentPaneMoved (previousPosition, currentPosition) {
+  if (
+    previousPosition.x === currentPosition.x &&
+    previousPosition.y === currentPosition.y &&
+    previousPosition.width === currentPosition.width &&
+    previousPosition.height === currentPosition.height
+  ) return true
+  return false
+}
+
+function paneMoved (firstPosition, secondPosition) {
+  if (
+    firstPosition.x === secondPosition.x &&
+    firstPosition.y === secondPosition.y &&
+    firstPosition.width === secondPosition.width &&
+    firstPosition.height === secondPosition.height
+  ) return false
+  return true
+}
+
 app.on('ready', () => {
   const sGrid = new ScreenGrid()
   const wChanger = new WinChanger()
@@ -35,7 +55,23 @@ app.on('ready', () => {
     {shortcut: 'L', directionName: 'right'}
   ]
   directions.forEach(d => {
-    globalShortcut.register(`Super+Ctrl+${d.shortcut}`, () => modeAtCurrentWindow(modes, (m) => m.movePaneMain(d.directionName)))
+    globalShortcut.register(`Super+Ctrl+${d.shortcut}`, () => modeAtCurrentWindow(modes, (currentMode) => {
+      const previousPosition = sGrid.currentPanePosition()
+      if (!previousPosition) return // no focused window
+      currentMode.movePaneMain(d.directionName)
+      const currentPosition = sGrid.currentPanePosition()
+      if (!paneMoved(previousPosition, currentPosition)) { // TODO: movePane should throw, and then we won't need this
+        const adjacentGrid = sGrid.adjacentGrids[currentMode.grid.id][d.directionName]
+        if (!adjacentGrid) return console.error('no grid found :(')
+        const focusedWindow = BrowserWindow.getFocusedWindow()
+        if (!focusedWindow) return // TODO: movePane should throw, and then we won't need this
+        const adjacentGridMode = modes.filter(m => m.id === adjacentGrid.id)[0]
+        if (adjacentGridMode.canImport(focusedWindow)) {
+          const pane = currentMode.exportPane(focusedWindow.id)
+          adjacentGridMode.importPane(pane, d.directionName)
+        }
+      }
+    }))
     globalShortcut.register(`Super+Ctrl+Shift+${d.shortcut}`, () => modeAtCurrentWindow(modes, (m) => m.movePaneSecondary(d.directionName)))
     globalShortcut.register(`Super+Alt+${d.shortcut}`, () => modeAtCurrentWindow(modes, (m) => m.increasePaneSize(d.directionName)))
     globalShortcut.register(`Super+Alt+Shift+${d.shortcut}`, () => modeAtCurrentWindow(modes, (m) => m.decreasePaneSize(d.directionName)))
