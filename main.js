@@ -24,10 +24,10 @@ function modeAtCurrentWindow (modes, action) {
 app.on('ready', () => {
   const sGrid = new ScreenGrid()
   const wChanger = new WinChanger()
-  const modes = sGrid.grids.map((g, index) => index % 2
-    ? new GeneralMode(g.id, sGrid, wChanger, TerminalWindow)
-    : new TmuxMode(g.id, sGrid, wChanger, TerminalWindow) // TODO: get config from outside, until then - these can be switched around manually as needed
-  )
+  const modes = sGrid.grids.map((g, index) =>  new GeneralMode(g.id, sGrid, wChanger, TerminalWindow))
+  //const modes = sGrid.grids.map((g, index) =>  new TmuxMode(g.id, sGrid, wChanger, TerminalWindow))  
+
+     
   const directions = [
     {shortcut: 'H', directionName: 'left'},
     {shortcut: 'J', directionName: 'down'},
