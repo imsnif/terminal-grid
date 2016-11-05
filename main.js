@@ -1,55 +1,17 @@
 'use strict'
 
-const { app, globalShortcut, BrowserWindow } = require('electron')
+const { app, globalShortcut } = require('electron')
 const WinChanger = require('electron-win-changer')
 const ScreenGrid = require('screen-grid')
 const TerminalWindow = require('electron-terminal-window')
 const TmuxMode = require('./lib/tmux-mode')
 const GeneralMode = require('./lib/general-mode')
-
-function modeAtCurrentWindow (modes, action) {
-  const focusedWindow = BrowserWindow.getFocusedWindow()
-  if (!focusedWindow) return // no-op
-  const mode = modes.filter(m => m.grid.panes.some(p => p.id === focusedWindow.id))[0]
-  if (!mode) return // no-op
-  return action(mode)
-}
-
-function paneMoved (firstPosition, secondPosition) {
-  if (
-    firstPosition.x === secondPosition.x &&
-    firstPosition.y === secondPosition.y &&
-    firstPosition.width === secondPosition.width &&
-    firstPosition.height === secondPosition.height
-  ) return false
-  return true
-}
-
-function movePaneCrossGrid (currentMode, modes, sGrid, direction) {
-  const previousPosition = sGrid.currentPanePosition()
-  if (!previousPosition) return // no focused window
-  currentMode.movePaneMain(direction)
-  const currentPosition = sGrid.currentPanePosition()
-  if (!paneMoved(previousPosition, currentPosition)) { // TODO: movePane should throw, and then we won't need this
-    const adjacentGrid = sGrid.adjacentGrids[currentMode.grid.id][direction]
-    if (!adjacentGrid) return console.error('no grid found :(')
-    const focusedWindow = BrowserWindow.getFocusedWindow()
-    if (!focusedWindow) return // TODO: movePane should throw, and then we won't need this
-    const adjacentGridMode = modes.filter(m => m.id === adjacentGrid.id)[0]
-    if (adjacentGridMode.canImport(focusedWindow)) {
-      const pane = currentMode.exportPane(focusedWindow.id)
-      adjacentGridMode.importPane(pane, direction)
-    }
-  }
-}
+const ModeManager = require('./lib/mode-manager')
 
 app.on('ready', () => {
   const sGrid = new ScreenGrid()
   const wChanger = new WinChanger()
-  const modes = sGrid.grids.map((g, index) => index % 2
-    ? new GeneralMode(g.id, sGrid, wChanger, TerminalWindow)
-    : new TmuxMode(g.id, sGrid, wChanger, TerminalWindow) // TODO: get config from outside, until then - these can be switched around manually as needed
-  )
+  const manager = new ModeManager(sGrid, wChanger, TerminalWindow, [GeneralMode, TmuxMode])
   const directions = [
     {shortcut: 'H', directionName: 'left'},
     {shortcut: 'J', directionName: 'down'},
@@ -57,19 +19,19 @@ app.on('ready', () => {
     {shortcut: 'L', directionName: 'right'}
   ]
   directions.forEach(d => {
-    globalShortcut.register(`Super+Ctrl+${d.shortcut}`, () => modeAtCurrentWindow(modes, (currentMode) => movePaneCrossGrid(currentMode, modes, sGrid, d.directionName)))
-    globalShortcut.register(`Super+Ctrl+Shift+${d.shortcut}`, () => modeAtCurrentWindow(modes, (m) => m.movePaneSecondary(d.directionName)))
-    globalShortcut.register(`Super+Alt+${d.shortcut}`, () => modeAtCurrentWindow(modes, (m) => m.increasePaneSize(d.directionName)))
-    globalShortcut.register(`Super+Alt+Shift+${d.shortcut}`, () => modeAtCurrentWindow(modes, (m) => m.decreasePaneSize(d.directionName)))
-    globalShortcut.register(`Super+${d.shortcut}`, () => modeAtCurrentWindow(modes, (m) => m.switchPaneFocus(d.directionName)))
+    globalShortcut.register(`Super+Ctrl+${d.shortcut}`, () => manager.movePanePrimary(d.directionName))
+    globalShortcut.register(`Super+Ctrl+Shift+${d.shortcut}`, () => manager.movePaneSecondary(d.directionName))
+    globalShortcut.register(`Super+Alt+${d.shortcut}`, () => manager.increasePaneSize(d.directionName))
+    globalShortcut.register(`Super+Alt+Shift+${d.shortcut}`, () => manager.decreasePaneSize(d.directionName))
+    globalShortcut.register(`Super+${d.shortcut}`, () => manager.switchPaneFocus(d.directionName))
   })
-  modes.forEach((m, index) => {
-    globalShortcut.register(`Super+${index}`, m.addPaneMain)
-    globalShortcut.register(`Super+Shift+${index}`, m.addPaneSecondary)
+  manager.modes.forEach((m, index) => {
+    globalShortcut.register(`Super+${index}`, () => manager.addPaneMain(index))
+    globalShortcut.register(`Super+Shift+${index}`, () => manager.addPaneSecondary(index))
   })
-  globalShortcut.register('Super+X', () => modeAtCurrentWindow(modes, (m) => m.closeCurrentPane()))
-  globalShortcut.register('Super+Z', () => sGrid.toggleCurrentWinFullSize())
-  globalShortcut.register('Super+A', () => wChanger.toggleAllShow())
+  globalShortcut.register('Super+X', () => manager.closePane())
+  globalShortcut.register('Super+Z', () => manager.togglePaneFullSize())
+  globalShortcut.register('Super+A', () => manager.toggleAllShow())
 })
 
 app.on('window-all-closed', () => {}) // keep app open after all windows closed
