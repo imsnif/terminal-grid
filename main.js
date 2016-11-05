@@ -7,28 +7,12 @@ const TerminalWindow = require('electron-terminal-window')
 const TmuxMode = require('./lib/tmux-mode')
 const GeneralMode = require('./lib/general-mode')
 
-function closeCurrentWindow () {
-  const focusedWindow = BrowserWindow.getFocusedWindow()
-  if (!focusedWindow) return // only close focused window
-  focusedWindow.close()
-}
-
 function modeAtCurrentWindow (modes, action) {
   const focusedWindow = BrowserWindow.getFocusedWindow()
   if (!focusedWindow) return // no-op
   const mode = modes.filter(m => m.grid.panes.some(p => p.id === focusedWindow.id))[0]
   if (!mode) return // no-op
   return action(mode)
-}
-
-function currentPaneMoved (previousPosition, currentPosition) {
-  if (
-    previousPosition.x === currentPosition.x &&
-    previousPosition.y === currentPosition.y &&
-    previousPosition.width === currentPosition.width &&
-    previousPosition.height === currentPosition.height
-  ) return true
-  return false
 }
 
 function paneMoved (firstPosition, secondPosition) {
@@ -39,6 +23,24 @@ function paneMoved (firstPosition, secondPosition) {
     firstPosition.height === secondPosition.height
   ) return false
   return true
+}
+
+function movePaneCrossGrid (currentMode, modes, sGrid, direction) {
+  const previousPosition = sGrid.currentPanePosition()
+  if (!previousPosition) return // no focused window
+  currentMode.movePaneMain(direction)
+  const currentPosition = sGrid.currentPanePosition()
+  if (!paneMoved(previousPosition, currentPosition)) { // TODO: movePane should throw, and then we won't need this
+    const adjacentGrid = sGrid.adjacentGrids[currentMode.grid.id][direction]
+    if (!adjacentGrid) return console.error('no grid found :(')
+    const focusedWindow = BrowserWindow.getFocusedWindow()
+    if (!focusedWindow) return // TODO: movePane should throw, and then we won't need this
+    const adjacentGridMode = modes.filter(m => m.id === adjacentGrid.id)[0]
+    if (adjacentGridMode.canImport(focusedWindow)) {
+      const pane = currentMode.exportPane(focusedWindow.id)
+      adjacentGridMode.importPane(pane, direction)
+    }
+  }
 }
 
 app.on('ready', () => {
@@ -55,23 +57,7 @@ app.on('ready', () => {
     {shortcut: 'L', directionName: 'right'}
   ]
   directions.forEach(d => {
-    globalShortcut.register(`Super+Ctrl+${d.shortcut}`, () => modeAtCurrentWindow(modes, (currentMode) => {
-      const previousPosition = sGrid.currentPanePosition()
-      if (!previousPosition) return // no focused window
-      currentMode.movePaneMain(d.directionName)
-      const currentPosition = sGrid.currentPanePosition()
-      if (!paneMoved(previousPosition, currentPosition)) { // TODO: movePane should throw, and then we won't need this
-        const adjacentGrid = sGrid.adjacentGrids[currentMode.grid.id][d.directionName]
-        if (!adjacentGrid) return console.error('no grid found :(')
-        const focusedWindow = BrowserWindow.getFocusedWindow()
-        if (!focusedWindow) return // TODO: movePane should throw, and then we won't need this
-        const adjacentGridMode = modes.filter(m => m.id === adjacentGrid.id)[0]
-        if (adjacentGridMode.canImport(focusedWindow)) {
-          const pane = currentMode.exportPane(focusedWindow.id)
-          adjacentGridMode.importPane(pane, d.directionName)
-        }
-      }
-    }))
+    globalShortcut.register(`Super+Ctrl+${d.shortcut}`, () => modeAtCurrentWindow(modes, (currentMode) => movePaneCrossGrid(currentMode, modes, sGrid, d.directionName)))
     globalShortcut.register(`Super+Ctrl+Shift+${d.shortcut}`, () => modeAtCurrentWindow(modes, (m) => m.movePaneSecondary(d.directionName)))
     globalShortcut.register(`Super+Alt+${d.shortcut}`, () => modeAtCurrentWindow(modes, (m) => m.increasePaneSize(d.directionName)))
     globalShortcut.register(`Super+Alt+Shift+${d.shortcut}`, () => modeAtCurrentWindow(modes, (m) => m.decreasePaneSize(d.directionName)))
