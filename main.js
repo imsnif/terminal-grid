@@ -29,6 +29,7 @@ app.on('ready', () => {
     globalShortcut.register(`Super+${index}`, () => manager.addPaneMain(index))
     globalShortcut.register(`Super+Shift+${index}`, () => manager.addPaneSecondary(index))
   })
+  globalShortcut.register(`Super+S`, () => manager.switchMode())
   globalShortcut.register('Super+X', () => manager.closePane())
   globalShortcut.register('Super+Z', () => manager.togglePaneFullSize())
   globalShortcut.register('Super+A', () => manager.toggleAllShow())
