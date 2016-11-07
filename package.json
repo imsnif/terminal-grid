@@ -4,7 +4,8 @@
   "description": "terminal window grid",
   "main": "main.js",
   "scripts": {
-    "start": "electron ."
+    "start": "electron .",
+    "test": "tape ./test/cases/*.spec.js --tap | tap-spec"
   },
   "repository": {
     "type": "git",
@@ -12,7 +13,11 @@
   },
   "author": "Aram Drevekenin",
   "license": "MIT",
-  "devDependencies": {},
+  "devDependencies": {
+    "sinon": "^1.17.6",
+    "tap-spec": "^4.1.1",
+    "tape": "^4.6.2"
+  },
   "dependencies": {
     "command-promise": "^2.0.0",
     "electron": "^1.4.2",
