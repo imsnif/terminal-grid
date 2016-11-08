@@ -6,6 +6,7 @@ module.exports = function modeSwitcher (state) {
   return {
     switchMode: () => {
       const mode = modeAtCurrentWindow(state.modes)
+      if (!mode) return // no-op
       const { grid } = mode
       const NextMode = state.modeTypes.filter(m => m.name !== mode.constructor.name)[0]
       const newMode = new NextMode(grid.id, state.sGrid, state.wChanger, state.TerminalWindow)
