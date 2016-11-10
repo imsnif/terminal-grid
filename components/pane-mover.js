@@ -14,7 +14,7 @@ module.exports = function paneMover (state) {
         const adjacentGrid = state.sGrid.adjacentGrids[mode.grid.id][direction]
         const focusedWindow = BrowserWindow.getFocusedWindow()
         if (!adjacentGrid) return // no-op
-        const adjacentGridMode = state.modes.filter(m => m.id === adjacentGrid.id)[0]
+        const adjacentGridMode = state.modes.find(m => m.id === adjacentGrid.id)
         if (adjacentGridMode.canImport(focusedWindow)) {
           const pane = mode.exportPane(focusedWindow.id)
           adjacentGridMode.importPane(pane, direction)
@@ -29,8 +29,8 @@ module.exports = function paneMover (state) {
       } catch (e) {
         const adjacentGrid = state.sGrid.adjacentGrids[mode.grid.id][direction]
         const focusedWindow = BrowserWindow.getFocusedWindow()
-        if (!adjacentGrid) return console.error('no grid found :(')
-        const adjacentGridMode = state.modes.filter(m => m.id === adjacentGrid.id)[0]
+        if (!adjacentGrid) return // no-op
+        const adjacentGridMode = state.modes.find(m => m.id === adjacentGrid.id)
         if (adjacentGridMode.canImport(focusedWindow)) {
           const pane = mode.exportPane(focusedWindow.id)
           adjacentGridMode.importPane(pane, direction)
