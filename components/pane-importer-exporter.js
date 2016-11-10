@@ -17,15 +17,15 @@ module.exports = {
         g.height >= winBounds.height
       )
       const largestGap = gaps.sort((a, b) =>
-        a.width * a.height > b.width * b.height ? 1 : -1
+        a.width * a.height > b.width * b.height ? -1 : 1
       )[0]
       state.sGrid.createWindow(
         state.id,
         win,
         Object.assign({}, winBounds,
           gapsLargerThanWin.length > 0
-            ? {x: gapsLargerThanWin.x, y: gapsLargerThanWin.y}
-            : largestGap[0]
+            ? {x: gapsLargerThanWin[0].x, y: gapsLargerThanWin[0].y}
+            : largestGap
         )
       )
     },
