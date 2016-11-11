@@ -46,20 +46,27 @@ test('GeneralMode state constructed properly', t => {
 })
 
 test('GeneralMode api behaves properly', t => {
-  t.plan(2)
-  const moveOrThrow = sinon.spy()
+  t.plan(7)
+  const moveOrThrow = sinon.stub().callsArg(1)
   const GeneralMode = stubGeneralMode(moveOrThrow)
   const displayId = 1
   const sGrid = {
     grids: [{id: 1}, {id: 2}],
     createWindow: sinon.spy(),
-    maxLoc: (...args) => console.log('argssss:', args)
+    maxLoc: sinon.spy(),
+    increaseCurWinSize: sinon.spy(),
+    decreaseCurWinSize: sinon.spy(),
+    switchWindow: sinon.spy()
   }
   const wChanger = 'wchanger'
   const TerminalWindow = 'TerminalWindow'
   const mode = new GeneralMode(displayId, sGrid, wChanger, TerminalWindow)
   mode.addPaneMain()
   mode.addPaneSecondary()
+  mode.movePaneMain('right')
+  mode.increasePaneSize('right')
+  mode.decreasePaneSize('right')
+  mode.switchPaneFocus('right')
   t.ok(
     sGrid.createWindow.getCall(0).calledWith(
       1,
@@ -75,5 +82,51 @@ test('GeneralMode api behaves properly', t => {
     ),
     'secondary window created properly'
   )
-  // TODO: test the rest of the API methods
+  t.ok(moveOrThrow.calledWith(sGrid), 'move method called moveOrThrow method')
+  t.ok(
+    sGrid.maxLoc.calledWith({right: true}),
+    'max loc called for move pane method'
+  )
+  t.ok(
+    sGrid.increaseCurWinSize.calledWith('right', 30),
+    'increaseCurWinSize called for increasePaneSize method with right args'
+  )
+  t.ok(
+    sGrid.decreaseCurWinSize.calledWith('right', 30),
+    'decreasePaneSize called for decreasePaneSize method with right args'
+  )
+  t.ok(
+    sGrid.switchWindow.calledWith('right', true),
+    'switchWindow called for switchPaneFocus method with right args'
+  )
+})
+
+test('GeneralMode movePaneSecondary method', t => {
+  t.plan(4)
+  const moveOrThrow = sinon.stub().callsArg(1)
+  const GeneralMode = stubGeneralMode(moveOrThrow)
+  const displayId = 1
+  const sGrid = {
+    grids: [{id: 1}, {id: 2}],
+    createWindow: sinon.spy(),
+    maxLoc: sinon.spy(),
+    increaseCurWinSize: sinon.spy(),
+    decreaseCurWinSize: sinon.spy(),
+    changeCurWindow: sinon.spy()
+  }
+  const wChanger = 'wchanger'
+  const TerminalWindow = 'TerminalWindow'
+  const mode = new GeneralMode(displayId, sGrid, wChanger, TerminalWindow)
+  mode.movePaneSecondary('right')
+  mode.movePaneSecondary('left')
+  mode.movePaneSecondary('up')
+  mode.movePaneSecondary('down')
+  const firstCall = sGrid.changeCurWindow.getCall(0)
+  const secondCall = sGrid.changeCurWindow.getCall(1)
+  const thirdCall = sGrid.changeCurWindow.getCall(2)
+  const fourthCall = sGrid.changeCurWindow.getCall(3)
+  t.ok(firstCall.calledWith({ x: 30 }), 'can move secondary right')
+  t.ok(secondCall.calledWith({ x: '-30' }), 'can move secondary left')
+  t.ok(thirdCall.calledWith({ y: '-30' }), 'can move secondary up')
+  t.ok(fourthCall.calledWith({ y: 30 }), 'can move secondary down')
 })
