@@ -56,6 +56,54 @@ test('moveOrThrow(sGrid, direction, move): moves pane and does not throw if it w
   }
 })
 
+test('paneIsOnScreenEdge(pane, grid, direction): returns true for edge pane on left side', t => {
+  t.plan(1)
+  try {
+    const { paneIsOnScreenEdge } = require('../../lib/utils')
+    const pane = {x: 500, width: 500, height: 100, y: 10}
+    const grid = {width: 1000, height: 500}
+    t.ok(paneIsOnScreenEdge(pane, grid, 'left'), 'returns true for edge pane')
+  } catch (e) {
+    t.fail(e)
+  }
+})
+
+test('paneIsOnScreenEdge(pane, grid, direction): returns true for edge pane on right side', t => {
+  t.plan(1)
+  try {
+    const { paneIsOnScreenEdge } = require('../../lib/utils')
+    const pane = {x: 0, width: 500, height: 100, y: 10}
+    const grid = {width: 1000, height: 500}
+    t.ok(paneIsOnScreenEdge(pane, grid, 'right'), 'returns true for edge pane')
+  } catch (e) {
+    t.fail(e)
+  }
+})
+
+test('paneIsOnScreenEdge(pane, grid, direction): returns true for edge pane on top side', t => {
+  t.plan(1)
+  try {
+    const { paneIsOnScreenEdge } = require('../../lib/utils')
+    const pane = {x: 300, width: 500, height: 250, y: 250}
+    const grid = {width: 1000, height: 500}
+    t.ok(paneIsOnScreenEdge(pane, grid, 'up'), 'returns true for edge pane')
+  } catch (e) {
+    t.fail(e)
+  }
+})
+
+test('paneIsOnScreenEdge(pane, grid, direction): returns true for edge pane on bottom side', t => {
+  t.plan(1)
+  try {
+    const { paneIsOnScreenEdge } = require('../../lib/utils')
+    const pane = {x: 300, width: 500, height: 250, y: 0}
+    const grid = {width: 1000, height: 500}
+    t.ok(paneIsOnScreenEdge(pane, grid, 'down'), 'returns true for edge pane')
+  } catch (e) {
+    t.fail(e)
+  }
+})
+
 // test('movePanePrimary(direction): no-op when no focused window', t => {
 //   t.plan(1)
 //   try {
