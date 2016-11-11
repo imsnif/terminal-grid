@@ -56,6 +56,21 @@ test('moveOrThrow(sGrid, direction, move): moves pane and does not throw if it w
   }
 })
 
+test('moveOrThrow(sGrid, direction, move): no op if no previous position', t => {
+  t.plan(2)
+  try {
+    const { moveOrThrow } = require('../../lib/utils')
+    const currentPanePosition = sinon.stub().returns(undefined)
+    const sGrid = {currentPanePosition}
+    const move = sinon.spy()
+    moveOrThrow(sGrid, move)
+    t.ok(currentPanePosition.calledOnce, 'position called once')
+    t.ok(move.notCalled, 'move not called as this was a no-op')
+  } catch (e) {
+    t.fail(e)
+  }
+})
+
 test('paneIsOnScreenEdge(pane, grid, direction): returns true for edge pane on left side', t => {
   t.plan(1)
   try {
