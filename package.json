@@ -6,7 +6,8 @@
   "scripts": {
     "start": "electron .",
     "test": "standard && tape ./test/unit/*.spec.js --tap | tap-spec",
-    "coverage": "nyc --reporter text --reporter lcov npm test"
+    "coverage": "nyc --reporter text --reporter lcov npm test",
+    "coveralls": "nyc npm test && nyc report --reporter=text-lcov | coveralls"
   },
   "repository": {
     "type": "git",
@@ -15,6 +16,7 @@
   "author": "Aram Drevekenin",
   "license": "MIT",
   "devDependencies": {
+    "coveralls": "^2.11.15",
     "proxyquire": "^1.7.10",
     "sinon": "^1.17.6",
     "standard": "^8.5.0",
