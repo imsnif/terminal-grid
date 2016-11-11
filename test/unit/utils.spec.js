@@ -104,6 +104,18 @@ test('paneIsOnScreenEdge(pane, grid, direction): returns true for edge pane on b
   }
 })
 
+test('paneIsOnScreenEdge(pane, grid, direction): returns false if pane is not on edge', t => {
+  t.plan(1)
+  try {
+    const { paneIsOnScreenEdge } = require('../../lib/utils')
+    const pane = {x: 300, width: 500, height: 250, y: 10}
+    const grid = {width: 1000, height: 500}
+    t.notOk(paneIsOnScreenEdge(pane, grid, 'left'), 'returns true for edge pane')
+  } catch (e) {
+    t.fail(e)
+  }
+})
+
 // test('movePanePrimary(direction): no-op when no focused window', t => {
 //   t.plan(1)
 //   try {
