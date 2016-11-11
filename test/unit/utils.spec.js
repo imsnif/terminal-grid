@@ -10,7 +10,7 @@ test('moveOrThrow(sGrid, direction, move): moves pane and does not throw if it m
     currentPanePosition.onCall(1).returns({x: 10, y: 0, width: 100, height: 100})
     const sGrid = {currentPanePosition}
     const move = sinon.spy()
-    moveOrThrow(sGrid, 'right', move)
+    moveOrThrow(sGrid, move)
     t.ok(currentPanePosition.calledTwice, 'position called twice')
     t.ok(move.calledOnce, 'move called once')
   } catch (e) {
@@ -28,7 +28,7 @@ test('moveOrThrow(sGrid, direction, move): throws if pane not moved', t => {
     const sGrid = {currentPanePosition}
     const move = sinon.spy()
     t.throws(
-      () => moveOrThrow(sGrid, 'right', move),
+      () => moveOrThrow(sGrid, move),
       /location blocked/,
       'method thrown if pane not moved'
     )
@@ -48,7 +48,7 @@ test('moveOrThrow(sGrid, direction, move): moves pane and does not throw if it w
     currentPanePosition.onCall(1).returns({x: 0, y: 0, width: 200, height: 100})
     const sGrid = {currentPanePosition}
     const move = sinon.spy()
-    moveOrThrow(sGrid, 'right', move)
+    moveOrThrow(sGrid, move)
     t.ok(currentPanePosition.calledTwice, 'position called twice')
     t.ok(move.calledOnce, 'move called once')
   } catch (e) {
