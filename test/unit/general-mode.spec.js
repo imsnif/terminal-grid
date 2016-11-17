@@ -84,7 +84,7 @@ test('GeneralMode api behaves properly', t => {
   )
   t.ok(moveOrThrow.calledWith(sGrid), 'move method called moveOrThrow method')
   t.ok(
-    sGrid.maxLoc.calledWith({right: true}),
+    sGrid.maxLoc.calledWith('right'),
     'max loc called for move pane method'
   )
   t.ok(
