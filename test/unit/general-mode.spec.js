@@ -17,7 +17,7 @@ test('GeneralMode state constructed properly', t => {
   const displayId = 1
   const sGrid = {
     grids: [{id: 1}, {id: 2}],
-    createWindow: sinon.spy()
+    createWindowCentered: sinon.spy()
   }
   const wChanger = 'wchanger'
   const TerminalWindow = 'TerminalWindow'
@@ -52,7 +52,7 @@ test('GeneralMode api behaves properly', t => {
   const displayId = 1
   const sGrid = {
     grids: [{id: 1}, {id: 2}],
-    createWindow: sinon.spy(),
+    createWindowCentered: sinon.spy(),
     maxLoc: sinon.spy(),
     increaseCurWinSize: sinon.spy(),
     decreaseCurWinSize: sinon.spy(),
@@ -68,14 +68,14 @@ test('GeneralMode api behaves properly', t => {
   mode.decreasePaneSize('right')
   mode.switchPaneFocus('right')
   t.ok(
-    sGrid.createWindow.getCall(0).calledWith(
+    sGrid.createWindowCentered.getCall(0).calledWith(
       1,
       'TerminalWindow',
       {frame: false, skipTaskbar: true, width: 400, height: 500}
     ),
     'main window created properly'
   )
-  t.ok(sGrid.createWindow.getCall(1).calledWith(
+  t.ok(sGrid.createWindowCentered.getCall(1).calledWith(
     1,
     'TerminalWindow',
     {frame: false, skipTaskbar: true, width: 600, height: 800}
@@ -108,7 +108,7 @@ test('GeneralMode movePaneSecondary method', t => {
   const displayId = 1
   const sGrid = {
     grids: [{id: 1}, {id: 2}],
-    createWindow: sinon.spy(),
+    createWindowCentered: sinon.spy(),
     maxLoc: sinon.spy(),
     increaseCurWinSize: sinon.spy(),
     decreaseCurWinSize: sinon.spy(),
