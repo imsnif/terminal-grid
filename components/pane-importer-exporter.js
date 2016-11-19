@@ -47,7 +47,7 @@ module.exports = {
           ? a.height > b.height ? -1 : 1
           : a.width > b.width ? -1 : 1
       })[0]
-      return state.sGrid.splitCurrentWindow(state.id, win, state.winOpts, splitAxis, largestCandidate.id)
+      return state.sGrid.splitWindow(state.id, win, state.winOpts, splitAxis, largestCandidate.id)
     },
     exportPane: (paneId) => {
       const win = state.grid.expel(paneId)
