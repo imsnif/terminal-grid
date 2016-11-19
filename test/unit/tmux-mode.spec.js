@@ -3,14 +3,15 @@ const test = require('tape')
 const sinon = require('sinon')
 const proxyquire = require('proxyquire')
 
-function stubTmuxMode (moveOrThrow, paneCloser) {
+function stubTmuxMode (moveOrThrow, paneCloser, focusedPane) {
   const paneCloserAction = !paneCloser
     ? () => { return {fakecloserMethod: 1} }
     : paneCloser
   return proxyquire('../../lib/tmux-mode', {
     '../components/pane-importer-exporter': () => ({fakeImporterExporterMethod: 1}),
     '../components/pane-closer': paneCloserAction,
-    './utils': {moveOrThrow}
+    './utils': {moveOrThrow},
+    'electron': {BrowserWindow: {getFocusedWindow: () => focusedPane}}
   })
 }
 
@@ -82,50 +83,186 @@ test('TmuxMode state constructed properly with no existing panes', t => {
 
 test('TmuxMode addPaneMain', t => {
   t.plan(1)
-  const TmuxMode = stubTmuxMode()
+  const focusedPane = {id: 1, width: 1000, height: 1000, x: 0, y: 0}
+  const TmuxMode = stubTmuxMode(null, null, focusedPane)
   const displayId = 1
   const sGrid = {
     grids: [
-      {id: 1, panes: [], maxAllPanes: sinon.spy()},
+      {id: 1, panes: [focusedPane], maxAllPanes: sinon.spy()},
       {id: 2, panes: [], maxAllPanes: sinon.spy()}
     ],
     createWindow: sinon.spy(),
-    splitCurrentWindow: sinon.spy()
+    splitWindow: sinon.spy()
   }
   const wChanger = 'wchanger'
   const TerminalWindow = 'TerminalWindow'
   const mode = new TmuxMode(displayId, sGrid, wChanger, TerminalWindow)
   mode.addPaneMain()
-  t.ok(sGrid.splitCurrentWindow.calledWith(
+  t.ok(sGrid.splitWindow.calledWith(
     1,
     'TerminalWindow',
     { frame: false, skipTaskbar: true },
     'vertical'
-  ), 'addPaneMain calls splitCurrentWindow mehtod of sGrid vertically')
+  ), 'addPaneMain calls splitWindow mehtod of sGrid vertically')
+})
+
+test('TmuxMode addPaneMain does not split window below minimum', t => {
+  t.plan(1)
+  const focusedPane = {id: 1, width: 60, height: 1000, x: 0, y: 0}
+  const TmuxMode = stubTmuxMode(null, null, focusedPane)
+  const displayId = 1
+  const sGrid = {
+    grids: [
+      {id: 1, panes: [focusedPane], maxAllPanes: sinon.spy()},
+      {id: 2, panes: [], maxAllPanes: sinon.spy()}
+    ],
+    createWindow: sinon.spy(),
+    splitWindow: sinon.spy()
+  }
+  const wChanger = 'wchanger'
+  const TerminalWindow = 'TerminalWindow'
+  const mode = new TmuxMode(displayId, sGrid, wChanger, TerminalWindow)
+  mode.addPaneMain()
+  t.ok(sGrid.splitWindow.notCalled, 'no-op')
+})
+
+test('TmuxMode addPaneMain no op when no focused window', t => {
+  t.plan(1)
+  const focusedPane = null
+  const TmuxMode = stubTmuxMode(null, null, focusedPane)
+  const displayId = 1
+  const sGrid = {
+    grids: [
+      {id: 1, panes: [focusedPane], maxAllPanes: sinon.spy()},
+      {id: 2, panes: [], maxAllPanes: sinon.spy()}
+    ],
+    createWindow: sinon.spy(),
+    splitWindow: sinon.spy()
+  }
+  const wChanger = 'wchanger'
+  const TerminalWindow = 'TerminalWindow'
+  const mode = new TmuxMode(displayId, sGrid, wChanger, TerminalWindow)
+  mode.addPaneMain()
+  t.ok(sGrid.splitWindow.notCalled, 'no-op')
+})
+
+test('TmuxMode addPaneMain with focused window outside screen', t => {
+  t.plan(1)
+  const focusedPane = {id: 1, width: 1000, height: 1000, x: 0, y: 0}
+  const nonFocusedPane = {id: 2, width: 1000, height: 1000, x: 0, y: 0}
+  const TmuxMode = stubTmuxMode(null, null, focusedPane)
+  const displayId = 1
+  const sGrid = {
+    grids: [
+      {id: 1, panes: [nonFocusedPane], maxAllPanes: sinon.spy()},
+      {id: 2, panes: [focusedPane], maxAllPanes: sinon.spy()}
+    ],
+    createWindow: sinon.spy(),
+    splitWindow: sinon.spy()
+  }
+  const wChanger = 'wchanger'
+  const TerminalWindow = 'TerminalWindow'
+  const mode = new TmuxMode(displayId, sGrid, wChanger, TerminalWindow)
+  mode.addPaneMain()
+  t.ok(sGrid.splitWindow.calledWith(
+    1,
+    'TerminalWindow',
+    { frame: false, skipTaskbar: true },
+    'vertical',
+    2
+  ), 'addPaneMain calls splitWindow mehtod with an id inside its screen of focus is outside of it')
 })
 
 test('TmuxMode addPaneSecondary', t => {
   t.plan(1)
-  const TmuxMode = stubTmuxMode()
+  const focusedPane = {id: 1, width: 1000, height: 1000, x: 0, y: 0}
+  const TmuxMode = stubTmuxMode(null, null, focusedPane)
   const displayId = 1
   const sGrid = {
     grids: [
-      {id: 1, panes: [], maxAllPanes: sinon.spy()},
+      {id: 1, panes: [focusedPane], maxAllPanes: sinon.spy()},
       {id: 2, panes: [], maxAllPanes: sinon.spy()}
     ],
     createWindow: sinon.spy(),
-    splitCurrentWindow: sinon.spy()
+    splitWindow: sinon.spy()
   }
   const wChanger = 'wchanger'
   const TerminalWindow = 'TerminalWindow'
   const mode = new TmuxMode(displayId, sGrid, wChanger, TerminalWindow)
   mode.addPaneSecondary()
-  t.ok(sGrid.splitCurrentWindow.calledWith(
+  t.ok(sGrid.splitWindow.calledWith(
     1,
     'TerminalWindow',
     { frame: false, skipTaskbar: true },
     'horizontal'
-  ), 'addPaneMain calls splitCurrentWindow mehtod of sGrid vertically')
+  ), 'addPaneSecondary calls splitWindow mehtod of sGrid vertically')
+})
+
+test('TmuxMode addPaneSecondary does not split window below minimum', t => {
+  t.plan(1)
+  const focusedPane = {id: 1, width: 1000, height: 60, x: 0, y: 0}
+  const TmuxMode = stubTmuxMode(null, null, focusedPane)
+  const displayId = 1
+  const sGrid = {
+    grids: [
+      {id: 1, panes: [focusedPane], maxAllPanes: sinon.spy()},
+      {id: 2, panes: [], maxAllPanes: sinon.spy()}
+    ],
+    createWindow: sinon.spy(),
+    splitWindow: sinon.spy()
+  }
+  const wChanger = 'wchanger'
+  const TerminalWindow = 'TerminalWindow'
+  const mode = new TmuxMode(displayId, sGrid, wChanger, TerminalWindow)
+  mode.addPaneSecondary()
+  t.ok(sGrid.splitWindow.notCalled, 'no-op')
+})
+
+test('TmuxMode addPaneSecondary no-op when no focused window', t => {
+  t.plan(1)
+  const focusedPane = null
+  const TmuxMode = stubTmuxMode(null, null, focusedPane)
+  const displayId = 1
+  const sGrid = {
+    grids: [
+      {id: 1, panes: [focusedPane], maxAllPanes: sinon.spy()},
+      {id: 2, panes: [], maxAllPanes: sinon.spy()}
+    ],
+    createWindow: sinon.spy(),
+    splitWindow: sinon.spy()
+  }
+  const wChanger = 'wchanger'
+  const TerminalWindow = 'TerminalWindow'
+  const mode = new TmuxMode(displayId, sGrid, wChanger, TerminalWindow)
+  mode.addPaneSecondary()
+  t.ok(sGrid.splitWindow.notCalled, 'no-op')
+})
+
+test('TmuxMode addPaneSecondary with focused window outside screen', t => {
+  t.plan(1)
+  const focusedPane = {id: 1, width: 1000, height: 1000, x: 0, y: 0}
+  const nonFocusedPane = {id: 2, width: 1000, height: 1000, x: 0, y: 0}
+  const TmuxMode = stubTmuxMode(null, null, focusedPane)
+  const displayId = 1
+  const sGrid = {
+    grids: [
+      {id: 1, panes: [nonFocusedPane], maxAllPanes: sinon.spy()},
+      {id: 2, panes: [focusedPane], maxAllPanes: sinon.spy()}
+    ],
+    createWindow: sinon.spy(),
+    splitWindow: sinon.spy()
+  }
+  const wChanger = 'wchanger'
+  const TerminalWindow = 'TerminalWindow'
+  const mode = new TmuxMode(displayId, sGrid, wChanger, TerminalWindow)
+  mode.addPaneSecondary()
+  t.ok(sGrid.splitWindow.calledWith(
+    1,
+    'TerminalWindow',
+    { frame: false, skipTaskbar: true },
+    'horizontal',
+    2
+  ), 'addPaneSecondary calls splitWindow mehtod of sGrid vertically')
 })
 
 test('TmuxMode movePaneMain', t => {
