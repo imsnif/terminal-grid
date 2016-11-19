@@ -1,6 +1,6 @@
 'use strict'
 
-const { app, globalShortcut } = require('electron')
+const { app, globalShortcut, Menu, Tray } = require('electron')
 const WinChanger = require('electron-win-changer')
 const ScreenGrid = require('screen-grid')
 const TerminalWindow = require('electron-terminal-window')
@@ -8,7 +8,15 @@ const TmuxMode = require('./lib/tmux-mode')
 const GeneralMode = require('./lib/general-mode')
 const ModeManager = require('./lib/mode-manager')
 
+let tray
+
 app.on('ready', () => {
+  tray = new Tray('./icons/amoeba.png')
+  const contextMenu = Menu.buildFromTemplate([
+    {label: 'Quit', click: () => app.quit()}
+  ])
+  tray.setToolTip('AmoebaTerm')
+  tray.setContextMenu(contextMenu)
   const sGrid = new ScreenGrid()
   const wChanger = new WinChanger()
   const manager = new ModeManager(sGrid, wChanger, TerminalWindow, [GeneralMode, TmuxMode])
