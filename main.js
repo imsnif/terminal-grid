@@ -1,6 +1,7 @@
 'use strict'
 
 const { app, globalShortcut, Menu, Tray } = require('electron')
+const path = require('path')
 const WinChanger = require('electron-win-changer')
 const ScreenGrid = require('screen-grid')
 const TerminalWindow = require('electron-terminal-window')
@@ -11,7 +12,7 @@ const ModeManager = require('./lib/mode-manager')
 let tray
 
 app.on('ready', () => {
-  tray = new Tray('./icons/amoeba.png')
+  tray = new Tray(path.join(__dirname, 'icons', 'amoeba.png'))
   const contextMenu = Menu.buildFromTemplate([
     {label: 'Quit', click: () => app.quit()}
   ])
