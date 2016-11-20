@@ -22,7 +22,8 @@ test('closeCurrentPane(): closes focused pane', t => {
     const close = sinon.spy()
     const paneCloser = stubPaneCloser(close, 1)
     const grid = {panes: [{id: 1}, {id: 2}]}
-    const { closeCurrentPane } = paneCloser({grid})
+    const sGrid = {adjacentPaneInGrid: () => {}, adjacentPane: () => {}}
+    const { closeCurrentPane } = paneCloser({grid, sGrid})
     closeCurrentPane()
     t.ok(close.calledOnce, 'focused window closed')
   } catch (e) {
@@ -37,7 +38,8 @@ test('closeCurrentPane(): does nothing when focused window is not part of grid',
     const close = sinon.spy()
     const paneCloser = stubPaneCloser(close, 3)
     const grid = {panes: [{id: 1}, {id: 2}]}
-    const { closeCurrentPane } = paneCloser({grid})
+    const sGrid = {adjacentPaneInGrid: () => {}, adjacentPane: () => {}}
+    const { closeCurrentPane } = paneCloser({grid, sGrid})
     closeCurrentPane()
     t.ok(close.notCalled, 'window was not closed')
   } catch (e) {
@@ -51,7 +53,8 @@ test('closeCurrentPane(): does nothing when there is no focused window', t => {
   try {
     const paneCloser = stubPaneCloserNoWin()
     const grid = {panes: [{id: 1}, {id: 2}]}
-    const { closeCurrentPane } = paneCloser({grid})
+    const sGrid = {adjacentPaneInGrid: () => {}, adjacentPane: () => {}}
+    const { closeCurrentPane } = paneCloser({grid, sGrid})
     closeCurrentPane()
     t.pass('no-op')
   } catch (e) {
@@ -66,9 +69,51 @@ test('closeCurrentPane(): closes focused pane and performs close action', t => {
     const closeAction = sinon.spy()
     const paneCloser = stubPaneCloser(() => {}, 1)
     const grid = {panes: [{id: 1}, {id: 2}]}
-    const { closeCurrentPane } = paneCloser({grid}, closeAction)
+    const sGrid = {adjacentPaneInGrid: () => {}, adjacentPane: () => {}}
+    const { closeCurrentPane } = paneCloser({grid, sGrid}, closeAction)
     closeCurrentPane()
     t.ok(closeAction.calledOnce, 'closed action called')
+  } catch (e) {
+    t.fail(e)
+    t.end()
+  }
+})
+
+test('closeCurrentPane(): closes focused pane ' +
+     'and focuses on adjacent pane if present', t => {
+  t.plan(1)
+  try {
+    const paneCloser = stubPaneCloser(() => {}, 1)
+    const grid = {panes: [{id: 1}, {id: 2}]}
+    const adjacentPaneFocus = sinon.spy()
+    const adjacentPaneInGridFocus = sinon.spy()
+    const sGrid = {
+      adjacentPaneInGrid: () => ({wrapped: {focus: adjacentPaneInGridFocus}}),
+      adjacentPane: () => ({wrapped: {focus: adjacentPaneFocus}})
+    }
+    const { closeCurrentPane } = paneCloser({grid, sGrid})
+    closeCurrentPane()
+    t.ok(adjacentPaneInGridFocus.calledOnce, 'adjacentPane focused')
+  } catch (e) {
+    t.fail(e)
+    t.end()
+  }
+})
+
+test('closeCurrentPane(): closes focused pane ' +
+     'and focuses on adjacent pane in adjacent grid if present', t => {
+  t.plan(1)
+  try {
+    const paneCloser = stubPaneCloser(() => {}, 1)
+    const grid = {panes: [{id: 1}, {id: 2}]}
+    const adjacentPaneFocus = sinon.spy()
+    const sGrid = {
+      adjacentPaneInGrid: () => {},
+      adjacentPane: () => ({wrapped: {focus: adjacentPaneFocus}})
+    }
+    const { closeCurrentPane } = paneCloser({grid, sGrid})
+    closeCurrentPane()
+    t.ok(adjacentPaneFocus.calledOnce, 'adjacentPane focused')
   } catch (e) {
     t.fail(e)
     t.end()
