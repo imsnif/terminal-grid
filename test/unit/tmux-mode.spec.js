@@ -36,7 +36,7 @@ test('TmuxMode state constructed properly', t => {
   t.equals(mode.grid, sGrid.grids[0], 'proper grid placed in state')
   t.deepEquals(
     mode.winOpts,
-    {frame: false, skipTaskbar: true},
+    {frame: false, skipTaskbar: true, resizable: false},
     'proper win defaults placed in state'
   )
   t.equals(mode.resizeAmount, 30, 'proper resize amount defaults placed in state')
@@ -65,7 +65,7 @@ test('TmuxMode state constructed properly with no existing panes', t => {
   t.equals(mode.grid, sGrid.grids[0], 'proper grid placed in state')
   t.deepEquals(
     mode.winOpts,
-    {frame: false, skipTaskbar: true},
+    {frame: false, skipTaskbar: true, resizable: false},
     'proper win defaults placed in state'
   )
   t.equals(mode.resizeAmount, 30, 'proper resize amount defaults placed in state')
@@ -101,7 +101,7 @@ test('TmuxMode addPaneMain', t => {
   t.ok(sGrid.splitWindow.calledWith(
     1,
     'TerminalWindow',
-    { frame: false, skipTaskbar: true },
+    { frame: false, skipTaskbar: true, resizable: false },
     'vertical'
   ), 'addPaneMain calls splitWindow mehtod of sGrid vertically')
 })
@@ -167,7 +167,7 @@ test('TmuxMode addPaneMain with focused window outside screen', t => {
   t.ok(sGrid.splitWindow.calledWith(
     1,
     'TerminalWindow',
-    { frame: false, skipTaskbar: true },
+    { frame: false, skipTaskbar: true, resizable: false },
     'vertical',
     2
   ), 'addPaneMain calls splitWindow mehtod with an id inside its screen of focus is outside of it')
@@ -193,7 +193,7 @@ test('TmuxMode addPaneSecondary', t => {
   t.ok(sGrid.splitWindow.calledWith(
     1,
     'TerminalWindow',
-    { frame: false, skipTaskbar: true },
+    { frame: false, skipTaskbar: true, resizable: false },
     'horizontal'
   ), 'addPaneSecondary calls splitWindow mehtod of sGrid vertically')
 })
@@ -259,7 +259,7 @@ test('TmuxMode addPaneSecondary with focused window outside screen', t => {
   t.ok(sGrid.splitWindow.calledWith(
     1,
     'TerminalWindow',
-    { frame: false, skipTaskbar: true },
+    { frame: false, skipTaskbar: true, resizable: false },
     'horizontal',
     2
   ), 'addPaneSecondary calls splitWindow mehtod of sGrid vertically')
@@ -391,11 +391,11 @@ test('TmuxMode paneCloser', t => {
   t.ok(firstGapFillCall.calledWith(
     1,
     TerminalWindow,
-    { gap1: '1', frame: false, skipTaskbar: true }
+    { gap1: '1', frame: false, skipTaskbar: true, resizable: false }
   ), 'first gap filled with window')
   t.ok(secondGapFillCall.calledWith(
     1,
     TerminalWindow,
-    { gap2: '2', frame: false, skipTaskbar: true }
+    { gap2: '2', frame: false, skipTaskbar: true, resizable: false }
   ), 'second gap filled with window')
 })

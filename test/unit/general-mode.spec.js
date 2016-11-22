@@ -29,7 +29,7 @@ test('GeneralMode state constructed properly', t => {
   t.equals(mode.grid, sGrid.grids[0], 'proper grid placed in state')
   t.deepEquals(
     mode.winOpts,
-    {frame: false, skipTaskbar: true},
+    {frame: false, skipTaskbar: true, resizable: false},
     'proper win defaults placed in state'
   )
   t.deepEquals(
@@ -71,14 +71,14 @@ test('GeneralMode api behaves properly', t => {
     sGrid.createWindowCentered.getCall(0).calledWith(
       1,
       'TerminalWindow',
-      {frame: false, skipTaskbar: true, width: 400, height: 500}
+      {frame: false, skipTaskbar: true, resizable: false, width: 400, height: 500}
     ),
     'main window created properly'
   )
   t.ok(sGrid.createWindowCentered.getCall(1).calledWith(
     1,
     'TerminalWindow',
-    {frame: false, skipTaskbar: true, width: 600, height: 800}
+    {frame: false, skipTaskbar: true, resizable: false, width: 600, height: 800}
     ),
     'secondary window created properly'
   )
