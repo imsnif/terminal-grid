@@ -13,7 +13,14 @@
     "type": "git",
     "url": "git+https://github.com/imsnif/terminal-grid.git"
   },
-  "author": "Aram Drevekenin",
+  "author": {
+    "name": "Aram Drevekenin",
+    "email": "grimsniffer@gmail.com"
+  },
+  "contributors": [{
+    "name": "Doron Tsur",
+    "email": "qballer@gmail.com"
+  }],
   "license": "MIT",
   "devDependencies": {
     "coveralls": "^2.11.15",
