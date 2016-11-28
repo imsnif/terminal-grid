@@ -1,15 +1,17 @@
 'use strict'
 const test = require('tape')
 const sinon = require('sinon')
-const proxyquire = require('proxyquire')
+const proxyquire = require('proxyquire').noCallThru()
 
 function stubTmuxMode (moveOrThrow, paneCloser, focusedPane) {
   const paneCloserAction = !paneCloser
     ? () => { return {fakecloserMethod: 1} }
     : paneCloser
+  const listeners = {listeners: 'listeners'}
   return proxyquire('../../lib/tmux-mode', {
-    '../components/pane-importer-exporter': () => ({fakeImporterExporterMethod: 1}),
+    '../components/pane-importer-exporter': {tmuxMode: () => ({fakeImporterExporterMethod: 1})},
     '../components/pane-closer': paneCloserAction,
+    '../lib/listeners': listeners,
     './utils': {moveOrThrow},
     'electron': {BrowserWindow: {getFocusedWindow: () => focusedPane}}
   })
@@ -75,7 +77,8 @@ test('TmuxMode state constructed properly with no existing panes', t => {
     sGrid.createWindow.calledWith(
       displayId,
       TerminalWindow,
-      Object.assign({}, mode.winOpts, {maxSize: true})
+      Object.assign({}, mode.winOpts, {maxSize: true}),
+      {listeners: 'listeners'}
     ),
     'window created full size'
   )
@@ -102,7 +105,7 @@ test('TmuxMode addPaneMain', t => {
     1,
     'TerminalWindow',
     { frame: false, skipTaskbar: true, resizable: false },
-    'vertical'
+    'vertical', 1, {listeners: 'listeners'}
   ), 'addPaneMain calls splitWindow mehtod of sGrid vertically')
 })
 
@@ -194,7 +197,9 @@ test('TmuxMode addPaneSecondary', t => {
     1,
     'TerminalWindow',
     { frame: false, skipTaskbar: true, resizable: false },
-    'horizontal'
+    'horizontal',
+    1,
+    {listeners: 'listeners'}
   ), 'addPaneSecondary calls splitWindow mehtod of sGrid vertically')
 })
 
@@ -391,11 +396,13 @@ test('TmuxMode paneCloser', t => {
   t.ok(firstGapFillCall.calledWith(
     1,
     TerminalWindow,
-    { gap1: '1', frame: false, skipTaskbar: true, resizable: false }
+    { gap1: '1', frame: false, skipTaskbar: true, resizable: false },
+    {listeners: 'listeners'}
   ), 'first gap filled with window')
   t.ok(secondGapFillCall.calledWith(
     1,
     TerminalWindow,
-    { gap2: '2', frame: false, skipTaskbar: true, resizable: false }
+    { gap2: '2', frame: false, skipTaskbar: true, resizable: false },
+    {listeners: 'listeners'}
   ), 'second gap filled with window')
 })

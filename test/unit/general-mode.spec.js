@@ -1,13 +1,15 @@
 'use strict'
 const test = require('tape')
 const sinon = require('sinon')
-const proxyquire = require('proxyquire')
+const proxyquire = require('proxyquire').noCallThru()
 
 function stubGeneralMode (moveOrThrow) {
+  const listeners = {listeners: 'listeners'}
   return proxyquire('../../lib/general-mode', {
-    '../components/pane-importer-exporter': () => ({fakeImporterExporterMethod: 1}),
+    '../components/pane-importer-exporter': {generalMode: () => ({fakeImporterExporterMethod: 1})},
     '../components/pane-closer': () => ({fakecloserMethod: 1}),
-    './utils': {moveOrThrow}
+    './utils': {moveOrThrow},
+    '../lib/listeners': listeners
   })
 }
 
@@ -71,14 +73,16 @@ test('GeneralMode api behaves properly', t => {
     sGrid.createWindowCentered.getCall(0).calledWith(
       1,
       'TerminalWindow',
-      {frame: false, skipTaskbar: true, resizable: false, width: 400, height: 500}
+      {frame: false, skipTaskbar: true, resizable: false, width: 400, height: 500},
+      {listeners: 'listeners'}
     ),
     'main window created properly'
   )
   t.ok(sGrid.createWindowCentered.getCall(1).calledWith(
     1,
     'TerminalWindow',
-    {frame: false, skipTaskbar: true, resizable: false, width: 600, height: 800}
+    {frame: false, skipTaskbar: true, resizable: false, width: 600, height: 800},
+    {listeners: 'listeners'}
     ),
     'secondary window created properly'
   )
