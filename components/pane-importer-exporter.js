@@ -26,7 +26,8 @@ module.exports = {
           gapsLargerThanWin.length > 0
             ? {x: gapsLargerThanWin[0].x, y: gapsLargerThanWin[0].y}
             : largestGap
-        )
+        ),
+        state.listeners
       )
     },
     exportPane: (paneId) => state.grid.expel(paneId)
@@ -47,7 +48,7 @@ module.exports = {
           ? a.height > b.height ? -1 : 1
           : a.width > b.width ? -1 : 1
       })[0]
-      return state.sGrid.splitWindow(state.id, win, state.winOpts, splitAxis, largestCandidate.id)
+      return state.sGrid.splitWindow(state.id, win, state.winOpts, splitAxis, largestCandidate.id, state.listeners)
     },
     exportPane: (paneId) => {
       const win = state.grid.expel(paneId)
@@ -56,7 +57,8 @@ module.exports = {
       gaps.forEach(g => state.sGrid.createWindow(
         state.id,
         state.TerminalWindow,
-        Object.assign({}, g, state.winOpts)
+        Object.assign({}, g, state.winOpts),
+        state.listeners
       ))
       return win
     }
