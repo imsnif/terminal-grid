@@ -41,6 +41,7 @@ test('generalMode.importPane(win, direction): imports pane into a gap equal to t
     const paneImporterExporter = stubPaneImporterExporter()
     const winBounds = {x: 500, y: 500, width: 100, height: 100}
     const win = {getBounds: () => winBounds}
+    const listeners = [ 'firstListener', 'secondListener' ]
     const grid = {
       findGaps: () => [
         {x: 0, y: 0, width: 100, height: 100},
@@ -51,10 +52,10 @@ test('generalMode.importPane(win, direction): imports pane into a gap equal to t
       createWindow: sinon.spy()
     }
     const id = 1
-    const { importPane } = paneImporterExporter.generalMode({grid, sGrid, id})
+    const { importPane } = paneImporterExporter.generalMode({grid, sGrid, id, listeners})
     importPane(win)
     t.ok(
-      sGrid.createWindow.calledWith(1, win, {x: 0, y: 0, width: 100, height: 100}),
+      sGrid.createWindow.calledWith(1, win, {x: 0, y: 0, width: 100, height: 100}, listeners),
       'window created in the size and location of appropriate gap'
     )
   } catch (e) {
@@ -68,6 +69,7 @@ test('generalMode.importPane(win, direction): imports pane by changing its size 
     const paneImporterExporter = stubPaneImporterExporter()
     const winBounds = {x: 500, y: 500, width: 100, height: 100}
     const win = {getBounds: () => winBounds}
+    const listeners = [ 'firstListener', 'secondListener' ]
     const grid = {
       findGaps: () => [
         {x: 0, y: 0, width: 50, height: 50},
@@ -78,10 +80,10 @@ test('generalMode.importPane(win, direction): imports pane by changing its size 
       createWindow: sinon.spy()
     }
     const id = 1
-    const { importPane } = paneImporterExporter.generalMode({grid, sGrid, id})
+    const { importPane } = paneImporterExporter.generalMode({grid, sGrid, id, listeners})
     importPane(win)
     t.ok(
-      sGrid.createWindow.calledWith(1, win, {x: 0, y: 0, width: 50, height: 50}),
+      sGrid.createWindow.calledWith(1, win, {x: 0, y: 0, width: 50, height: 50}, listeners),
       'window created in the size and location of appropriate gap'
     )
   } catch (e) {
@@ -129,10 +131,11 @@ test('tmuxMode.importPane(win, direction): splits largest pane horizontally when
     const winOpts = 2
     const paneImporterExporter = stubPaneImporterExporter()
     const win = {id: 'I am a window', getBounds: () => {}}
-    const { importPane } = paneImporterExporter.tmuxMode({grid, sGrid, id, winOpts})
+    const listeners = [ 'firstListener', 'secondListener' ]
+    const { importPane } = paneImporterExporter.tmuxMode({grid, sGrid, id, winOpts, listeners})
     importPane(win, 'left')
     t.ok(
-      sGrid.splitWindow.calledWith(1, win, 2, 'horizontal', 4),
+      sGrid.splitWindow.calledWith(1, win, 2, 'horizontal', 4, listeners),
       'current window split with imported window inserted'
     )
   } catch (e) {
@@ -156,10 +159,11 @@ test('tmuxMode.importPane(win, direction): splits largest pane horizontally when
     const winOpts = 2
     const paneImporterExporter = stubPaneImporterExporter()
     const win = {id: 'I am a window', getBounds: () => {}}
-    const { importPane } = paneImporterExporter.tmuxMode({grid, sGrid, id, winOpts})
+    const listeners = [ 'firstListener', 'secondListener' ]
+    const { importPane } = paneImporterExporter.tmuxMode({grid, sGrid, id, winOpts, listeners})
     importPane(win, 'right')
     t.ok(
-      sGrid.splitWindow.calledWith(1, win, 2, 'horizontal', 4),
+      sGrid.splitWindow.calledWith(1, win, 2, 'horizontal', 4, listeners),
       'current window split with imported window inserted'
     )
   } catch (e) {
@@ -183,10 +187,11 @@ test('tmuxMode.importPane(win, direction): splits largest pane vertically when i
     const winOpts = 2
     const paneImporterExporter = stubPaneImporterExporter()
     const win = {id: 'I am a window', getBounds: () => {}}
-    const { importPane } = paneImporterExporter.tmuxMode({grid, sGrid, id, winOpts})
+    const listeners = [ 'firstListener', 'secondListener' ]
+    const { importPane } = paneImporterExporter.tmuxMode({grid, sGrid, id, winOpts, listeners})
     importPane(win, 'up')
     t.ok(
-      sGrid.splitWindow.calledWith(1, win, 2, 'vertical', 4),
+      sGrid.splitWindow.calledWith(1, win, 2, 'vertical', 4, listeners),
       'current window split with imported window inserted'
     )
   } catch (e) {
@@ -210,10 +215,11 @@ test('tmuxMode.importPane(win, direction): splits largest pane vertically when i
     const winOpts = 2
     const paneImporterExporter = stubPaneImporterExporter()
     const win = {id: 'I am a window', getBounds: () => {}}
-    const { importPane } = paneImporterExporter.tmuxMode({grid, sGrid, id, winOpts})
+    const listeners = [ 'firstListener', 'secondListener' ]
+    const { importPane } = paneImporterExporter.tmuxMode({grid, sGrid, id, winOpts, listeners})
     importPane(win, 'down')
     t.ok(
-      sGrid.splitWindow.calledWith(1, win, 2, 'vertical', 4),
+      sGrid.splitWindow.calledWith(1, win, 2, 'vertical', 4, listeners),
       'current window split with imported window inserted'
     )
   } catch (e) {
