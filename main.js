@@ -8,6 +8,7 @@ const TerminalWindow = require('electron-terminal-window')
 const TmuxMode = require('./lib/tmux-mode')
 const GeneralMode = require('./lib/general-mode')
 const ModeManager = require('./lib/mode-manager')
+const ShortE = require('shorte')
 
 let tray
 
@@ -27,21 +28,22 @@ app.on('ready', () => {
     {shortcut: 'K', directionName: 'up'},
     {shortcut: 'L', directionName: 'right'}
   ]
+  const shortcuts = new ShortE(globalShortcut, 'Ctrl+A', {debounceTime: 500})
   directions.forEach(d => {
-    globalShortcut.register(`Super+Ctrl+${d.shortcut}`, () => manager.movePanePrimary(d.directionName))
-    globalShortcut.register(`Super+Ctrl+Shift+${d.shortcut}`, () => manager.movePaneSecondary(d.directionName))
-    globalShortcut.register(`Super+Alt+${d.shortcut}`, () => manager.increasePaneSize(d.directionName))
-    globalShortcut.register(`Super+Alt+Shift+${d.shortcut}`, () => manager.decreasePaneSize(d.directionName))
-    globalShortcut.register(`Super+${d.shortcut}`, () => manager.switchPaneFocus(d.directionName))
+    shortcuts.register(`Ctrl+${d.shortcut}`, () => manager.movePanePrimary(d.directionName))
+    shortcuts.register(`Ctrl+Shift+${d.shortcut}`, () => manager.movePaneSecondary(d.directionName))
+    shortcuts.register(`Alt+${d.shortcut}`, () => manager.increasePaneSize(d.directionName))
+    shortcuts.register(`Alt+Shift+${d.shortcut}`, () => manager.decreasePaneSize(d.directionName))
+    shortcuts.register(`${d.shortcut}`, () => manager.switchPaneFocus(d.directionName))
   })
   manager.modes.forEach((m, index) => {
-    globalShortcut.register(`Super+${index}`, () => manager.addPaneMain(index))
-    globalShortcut.register(`Super+Shift+${index}`, () => manager.addPaneSecondary(index))
+    shortcuts.register(`${index}`, () => manager.addPaneMain(index))
+    shortcuts.register(`Shift+${index}`, () => manager.addPaneSecondary(index))
   })
-  globalShortcut.register(`Super+S`, () => manager.switchMode())
-  globalShortcut.register('Super+X', () => manager.closePane())
-  globalShortcut.register('Super+Z', () => manager.togglePaneFullSize())
-  globalShortcut.register('Super+A', () => manager.toggleAllShow())
+  shortcuts.register(`S`, () => manager.switchMode())
+  shortcuts.register('X', () => manager.closePane())
+  shortcuts.register('Z', () => manager.togglePaneFullSize())
+  shortcuts.register('A', () => manager.toggleAllShow())
 })
 
 app.on('window-all-closed', () => {}) // keep app open after all windows closed
