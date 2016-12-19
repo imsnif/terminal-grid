@@ -28,7 +28,7 @@ app.on('ready', () => {
     {shortcut: 'K', directionName: 'up'},
     {shortcut: 'L', directionName: 'right'}
   ]
-  const shortcuts = new ShortE(globalShortcut, 'Ctrl+A', {debounceTime: 500})
+  const shortcuts = new ShortE(globalShortcut, 'Ctrl+B', {debounceTime: 500, cancel: 'F2'})
   directions.forEach(d => {
     shortcuts.register(`Ctrl+${d.shortcut}`, () => manager.movePanePrimary(d.directionName))
     shortcuts.register(`Ctrl+Shift+${d.shortcut}`, () => manager.movePaneSecondary(d.directionName))
