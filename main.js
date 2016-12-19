@@ -44,6 +44,8 @@ app.on('ready', () => {
   shortcuts.register('X', () => manager.closePane())
   shortcuts.register('Z', () => manager.togglePaneFullSize())
   shortcuts.register('A', () => manager.toggleAllShow())
+  shortcuts.register('W', () => manager.openPaneMainInCurrentScreen())
+  shortcuts.register('Shift+W', () => manager.openPaneSecondaryInCurrentScreen())
 })
 
 app.on('window-all-closed', () => {}) // keep app open after all windows closed

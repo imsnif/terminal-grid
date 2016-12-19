@@ -13,6 +13,16 @@ module.exports = function paneGridActions (state) {
       const mode = modeAtCurrentWindow(state.modes)
       if (!mode) return // no-op
       mode.closeCurrentPane()
+    },
+    openPaneMainInCurrentScreen: () => {
+      const mode = modeAtCurrentWindow(state.modes)
+      if (!mode) return // no-op
+      mode.addPaneMain()
+    },
+    openPaneSecondaryInCurrentScreen: () => {
+      const mode = modeAtCurrentWindow(state.modes)
+      if (!mode) return // no-op
+      mode.addPaneSecondary()
     }
   }
 }
