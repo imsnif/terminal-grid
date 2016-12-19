@@ -73,3 +73,63 @@ test('closePane(): does not close pane when no win is focused', t => {
     t.fail(e)
   }
 })
+
+test('openPaneMainInCurrentScreen(): calls addPaneMain of current mode', t => {
+  t.plan(2)
+  try {
+    const modes = [ {addPaneMain: sinon.spy()}, {addPaneMain: sinon.spy()} ]
+    const paneGridActions = stubPaneGridActions()
+    const { openPaneMainInCurrentScreen } = paneGridActions({modes})
+    openPaneMainInCurrentScreen()
+    t.ok(
+      modes[0].addPaneMain.calledOnce,
+      'addPaneMain method of relevant mode called'
+    )
+    t.ok(modes[1].addPaneMain.notCalled, 'addPaneMain of other mode not called')
+  } catch (e) {
+    t.fail(e)
+  }
+})
+
+test('openPaneMainInCurrentScreen(): no-op if no win is focused', t => {
+  t.plan(1)
+  try {
+    const modes = [ {addPaneMain: sinon.spy()}, {addPaneMain: sinon.spy()} ]
+    const paneGridActions = stubPaneGridActionsNoMode()
+    const { openPaneMainInCurrentScreen } = paneGridActions({modes})
+    openPaneMainInCurrentScreen()
+    t.ok(modes.every(m => m.addPaneMain.notCalled), 'no addPaneMain method called')
+  } catch (e) {
+    t.fail(e)
+  }
+})
+
+test('openPaneSecondaryInCurrentScreen(): calls addPaneSecondary of current mode', t => {
+  t.plan(2)
+  try {
+    const modes = [ {addPaneSecondary: sinon.spy()}, {addPaneSecondary: sinon.spy()} ]
+    const paneGridActions = stubPaneGridActions()
+    const { openPaneSecondaryInCurrentScreen } = paneGridActions({modes})
+    openPaneSecondaryInCurrentScreen()
+    t.ok(
+      modes[0].addPaneSecondary.calledOnce,
+      'addPaneSecondary method of relevant mode called'
+    )
+    t.ok(modes[1].addPaneSecondary.notCalled, 'addPaneSecondary of other mode not called')
+  } catch (e) {
+    t.fail(e)
+  }
+})
+
+test('openPaneSecondaryInCurrentScreen(): no-op if no win is focused', t => {
+  t.plan(1)
+  try {
+    const modes = [ {addPaneSecondary: sinon.spy()}, {addPaneSecondary: sinon.spy()} ]
+    const paneGridActions = stubPaneGridActionsNoMode()
+    const { openPaneSecondaryInCurrentScreen } = paneGridActions({modes})
+    openPaneSecondaryInCurrentScreen()
+    t.ok(modes.every(m => m.addPaneSecondary.notCalled), 'no addPaneSecondary method called')
+  } catch (e) {
+    t.fail(e)
+  }
+})
